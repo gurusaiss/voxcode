@@ -34,7 +34,7 @@ htmlcov/
 *.flac
 *.ogg
 
-# IDE
+# IDE — keep out of repo
 .vscode/
 .idea/
 *.swp

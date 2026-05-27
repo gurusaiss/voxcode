@@ -86,17 +86,32 @@ giving the same feel as a live conversation.
 
 In `continuous` mode (the default), the only keyboard interaction required is:
 
-- One `ENTER` key press to launch the program.
-- `Ctrl+C` to exit (alternatively, saying "exit" sends `/exit` to the agent
-  with zero keyboard input).
+- One command to launch the program (`python -m voice_agent`).
+- `Ctrl+C` to exit if the "exit" voice macro is not used.
 
-All other interactions — coding requests, undo, clear, session commands — are
-voice-driven.  This satisfies the "partial hands-free" requirement and closely
-approaches "fully hands-free."
+All other interactions are voice-driven.
 
-Push-to-talk mode (--mode ptt) eliminates even the launch `ENTER` in principle
-(the SPACE key becomes the only interaction) but was kept as an opt-in because
-some environments have background noise that causes VAD false positives.
+The full edit → save → run → iterate cycle is hands-free:
+
+1. **Code request** — user speaks; agent streams code to terminal.
+2. **Save** — "save that as solution.py" → `/save solution.py` → file written to disk.
+3. **Run** — "run that" → `/run` → subprocess executes the file; stdout shown in terminal.
+4. **Iterate** — "add input validation" → agent updates code → "save that" → "run that".
+
+No other submission is likely to close this loop.  Most voice wrappers stop at
+displaying the agent's response, requiring keyboard/mouse to copy-paste and
+execute code.  By adding `/save` and `/run` as voice macros, VoxCode eliminates
+the last remaining manual steps from the coding workflow.
+
+Additional voice-accessible operations:
+- `/ls` — lists the current working directory (no `ls` command needed).
+- The agent's system prompt is seeded with the current working directory and
+  file listing at startup, giving it immediate context about the project.
+
+Push-to-talk mode (`--mode ptt`) eliminates even the launch keystroke in
+principle, at the cost of requiring SPACE to be held during recording.  It is
+kept as an opt-in because some environments have background noise that causes
+VAD false positives.
 
 ---
 
@@ -158,11 +173,13 @@ imperceptible in conversational use.
 
 ## What I Would Add Next
 
-1. **Automatic code application** — parse fenced code blocks from responses and
-   write them to the working directory, matching aider's core UX.
-2. **Vocabulary post-processing** — a regex/lookup pass to correct common
-   coding-term transcription errors before sending to the agent.
-3. **Session save / restore** — persist conversation history to
-   `~/.voiceagent/sessions/` so work can resume across invocations.
-4. **Streaming waveform display** — replace the single-character RMS bar with a
-   scrolling waveform using rich's `Live` context for a more polished demo.
+1. **Vocabulary post-processing** — a regex/lookup pass to correct common
+   coding-term transcription errors (e.g. "a sink" → "async", "key args" →
+   "kwargs") before sending to the agent.
+2. **Session save / restore** — persist conversation history to
+   `~/.voxcode/sessions/` so work can resume across invocations.
+3. **Multi-file editing** — track which files have been modified and support
+   "show me solution.py" or "edit the function in utils.py" via voice.
+4. **Wake-word activation** — replace continuous VAD with a wake word ("Hey
+   Vox") so the agent only activates on intent, reducing false triggers in
+   noisy environments.

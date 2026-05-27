@@ -140,16 +140,43 @@ No key presses needed between turns.
 
 Every essential session action is accessible by voice. Macro matching is case-insensitive and tolerates trailing punctuation.
 
-| Say this | Sends to agent | Effect |
+| Say this | Sends | Effect |
 |---|---|---|
-| "exit" / "quit" / "goodbye" | `/exit` | Ends the session cleanly |
-| "undo" / "undo that" / "revert" | `/undo` | Removes the last exchange from context |
-| "clear" / "reset" / "start over" | `/clear` | Resets conversation history |
-| "show files" / "list files" | `/files` | Lists all filenames mentioned in session |
-| "help" / "what can you do" | `/help` | Shows all available commands |
-| "show history" / "conversation history" | `/history` | Summarises the session so far |
+| "exit" / "quit" / "goodbye" | `/exit` | End session cleanly |
+| "undo" / "undo that" / "revert" | `/undo` | Remove last exchange from context |
+| "clear" / "reset" / "start over" | `/clear` | Reset conversation history |
+| "save that" / "write to file" | `/save` | **Save last code block to disk** (auto-named) |
+| "save that as main.py" | `/save main.py` | **Save with a specific filename** |
+| "run that" / "run the code" | `/run` | **Execute the last saved file** |
+| "show directory" / "list directory" | `/ls` | List current directory contents |
+| "show files" / "list files" | `/files` | List filenames mentioned in session |
+| "help" / "what can you do" | `/help` | Show all commands |
+| "show history" | `/history` | Summarise the session so far |
 
-Anything else is sent directly to the coding agent as a natural-language coding request.
+### The complete hands-free coding loop
+
+```
+You say:  "Write a function that reads a CSV file and prints the first 5 rows"
+Agent:    streams Python code to terminal
+
+You say:  "Save that as read_csv.py"
+Agent:    [Saved] Code written to read_csv.py  (12 lines)
+
+You say:  "Run that"
+Agent:    [Run] read_csv.py (exit code 0)
+          name, age, city
+          Alice, 30, London
+          ...
+
+You say:  "Add error handling if the file doesn't exist"
+Agent:    streams updated code
+
+You say:  "Save that as read_csv.py"
+          "Run that"
+          "Exit"
+```
+
+**Zero keyboard. Zero mouse. End to end.**
 
 ---
 
@@ -158,14 +185,16 @@ Anything else is sent directly to the coding agent as a natural-language coding 
 | Interaction | Hands-free? | Notes |
 |---|---|---|
 | Coding requests | ✅ 100% | Speak naturally |
-| Undo last turn | ✅ 100% | Say "undo that" |
-| Reset session | ✅ 100% | Say "clear" |
-| Exit session | ✅ 100% | Say "exit" |
-| List files | ✅ 100% | Say "show files" |
+| Save code to disk | ✅ 100% | "save that" / "save as main.py" |
+| Run saved code | ✅ 100% | "run that" |
+| List directory | ✅ 100% | "show directory" |
+| Undo last turn | ✅ 100% | "undo that" |
+| Reset session | ✅ 100% | "clear" |
+| Exit session | ✅ 100% | "exit" |
 | Start the program | ⚠️ One command | `python -m voice_agent` |
 | Stop (fallback) | ⚠️ Ctrl+C | Only if voice exit fails |
 
-**In continuous VAD mode:** once the program is running, zero keyboard input is required for any coding interaction, undo, clear, help, or exit.
+**In continuous VAD mode:** once the program is running, zero keyboard input is required. The entire edit → save → run → iterate cycle is voice-controlled.
 
 ---
 

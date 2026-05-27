@@ -101,10 +101,38 @@ def _run_session(
     )
     console.print(f"[dim]STT: {stt_label}[/dim]\n")
 
+    # Verify microphone is accessible before entering the loop
+    if not _check_microphone(console, cfg.sample_rate, cfg.device_index):
+        sys.exit(1)
+
     if mode == "continuous":
         _continuous_loop(console, ui, agent, cfg, stt_backend)
     else:
         _ptt_loop(console, ui, agent, cfg, stt_backend)
+
+
+# ── startup mic check ────────────────────────────────────────────────────────
+
+
+def _check_microphone(console: Console, sample_rate: int, device: int | None) -> bool:
+    """Try to open the mic for 1 frame.  Print a helpful error and return False on failure."""
+    try:
+        import sounddevice as sd
+        import numpy as np
+        with sd.InputStream(samplerate=sample_rate, channels=1,
+                            dtype=np.int16, device=device) as s:
+            s.read(int(sample_rate * 0.03))   # 30 ms
+        console.print("[dim]Microphone OK[/dim]\n")
+        return True
+    except Exception as exc:
+        console.print(
+            f"[red]Microphone error:[/red] {exc}\n\n"
+            f"[yellow]Tips:[/yellow]\n"
+            f"  - Run [cyan]python -m voice_agent --list-devices[/cyan] to see available mics\n"
+            f"  - Set [cyan]DEVICE_INDEX=<number>[/cyan] in .env to pick a specific device\n"
+            f"  - Check your OS mic permissions"
+        )
+        return False
 
 
 # ── continuous VAD loop ───────────────────────────────────────────────────────
