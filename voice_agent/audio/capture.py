@@ -33,19 +33,22 @@ def _to_wav_bytes(samples: np.ndarray, sample_rate: int) -> bytes:
 
 def record_continuous(
     sample_rate: int = 16000,
-    silence_timeout: float = 1.5,
+    silence_timeout: float = 1.0,
     vad_aggressiveness: int = 2,
     on_energy: Optional[Callable[[float], None]] = None,
+    on_speech_start: Optional[Callable[[], None]] = None,
     max_duration: float = 30.0,
+    device: Optional[int] = None,
 ) -> Optional[bytes]:
     """Block until the user speaks, then record until silence.
 
     Args:
-        sample_rate:       Mic sample rate (Hz).
-        silence_timeout:   Seconds of silence that trigger end-of-utterance.
+        sample_rate:        Mic sample rate (Hz).
+        silence_timeout:    Seconds of post-speech silence that end the utterance.
         vad_aggressiveness: webrtcvad aggressiveness 0–3.
-        on_energy:         Optional callback(rms_float) called every frame for UI.
-        max_duration:      Hard cut-off in seconds — prevents infinite loops.
+        on_energy:          Callback(rms_float) called every 30 ms frame for UI.
+        on_speech_start:    Callback() fired the instant speech is first detected.
+        max_duration:       Hard cut-off in seconds — prevents infinite loops.
 
     Returns:
         WAV bytes of the recorded utterance, or None if nothing was captured.
@@ -61,7 +64,8 @@ def record_continuous(
     silent_frame_count = 0
     total_frames = 0
 
-    with sd.InputStream(samplerate=sample_rate, channels=CHANNELS, dtype=DTYPE) as stream:
+    with sd.InputStream(samplerate=sample_rate, channels=CHANNELS, dtype=DTYPE,
+                        device=device) as stream:
         while total_frames < max_frames:
             chunk, _ = stream.read(fsize)
             chunk = chunk[:, 0]  # mono
@@ -74,6 +78,8 @@ def record_continuous(
             speaking = is_speech(chunk.tobytes())
 
             if speaking:
+                if not speech_started and on_speech_start:
+                    on_speech_start()           # notify UI immediately
                 buffer.append(chunk.copy())
                 speech_started = True
                 silent_frame_count = 0

@@ -22,8 +22,6 @@ Pre-installed environments: **under 30 seconds**.
 
 ╭─ Help ─────────────────────────────────────────────────────────╮
 │ Keyboard shortcuts                                             │
-│   ENTER   - new recording turn (continuous mode)              │
-│   SPACE   - hold to record, release to send (ptt mode)        │
 │   Ctrl+C  - exit session                                       │
 │                                                                │
 │ Voice macros                                                   │
@@ -34,9 +32,12 @@ Pre-installed environments: **under 30 seconds**.
 │   /help    -> "help", "what can you do"                       │
 ╰────────────────────────────────────────────────────────────────╯
 
-* Listening...  (speak at any time - pause to send)
+* Listening...  (speak naturally - pause to send)
 
-* REC  ########........................  1847 rms
+* REC    ........................................   12 rms   <- waiting (red)
+* HEARD  ###########################.............  847 rms   <- speech detected (green)
+
+                    Transcribing speech...   <- spinner (~200 ms)
 
 ╭─ You  (turn 3) ────────────────────────────────────────────────╮
 │  Add error handling so balance can't go negative               │
@@ -223,8 +224,9 @@ Copy `.env.example` to `.env` and edit:
 | `AGENT_MODEL` | `llama-3.3-70b-versatile` | Any Groq-hosted chat model |
 | `RECORD_MODE` | `continuous` | `continuous` (VAD) or `ptt` (push-to-talk) |
 | `VAD_AGGRESSIVENESS` | `2` | 0 = permissive → 3 = strict |
-| `SILENCE_TIMEOUT` | `1.5` | Seconds of post-speech silence before sending |
+| `SILENCE_TIMEOUT` | `1.0` | Seconds of post-speech silence before sending |
 | `SAMPLE_RATE` | `16000` | Microphone sample rate in Hz |
+| `DEVICE_INDEX` | *(system default)* | Mic device number — see `--list-devices` |
 
 ---
 

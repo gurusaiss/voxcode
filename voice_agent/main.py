@@ -71,14 +71,14 @@ def cli(
         sys.exit(1)
 
     # CLI flags override .env settings
-    effective_mode = mode or cfg.record_mode
-    effective_stt = stt or cfg.stt_backend
+    effective_mode  = mode  or cfg.record_mode
+    effective_stt   = stt   or cfg.stt_backend
     effective_model = model or cfg.agent_model
 
     _run_session(console, cfg, effective_mode, effective_stt, effective_model)
 
 
-# ── session loop ──────────────────────────────────────────────────────────────
+# ── session bootstrap ─────────────────────────────────────────────────────────
 
 
 def _run_session(
@@ -88,23 +88,26 @@ def _run_session(
     stt_backend: str,
     agent_model: str,
 ) -> None:
-    ui = AgentUI(console, model=agent_model, mode=mode)
+    ui    = AgentUI(console, model=agent_model, mode=mode)
     agent = GroqAgent(api_key=cfg.groq_api_key, model=agent_model)
 
     ui.print_banner()
     ui.print_help(describe_macros())
 
-    stt_note = (
-        "Groq Whisper API (whisper-large-v3-turbo)"
+    stt_label = (
+        "Groq Whisper (whisper-large-v3-turbo)"
         if stt_backend == "groq"
-        else "faster-whisper (local, base model)"
+        else "faster-whisper local (base model)"
     )
-    console.print(f"[dim]STT: {stt_note}[/dim]")
+    console.print(f"[dim]STT: {stt_label}[/dim]\n")
 
     if mode == "continuous":
         _continuous_loop(console, ui, agent, cfg, stt_backend)
     else:
         _ptt_loop(console, ui, agent, cfg, stt_backend)
+
+
+# ── continuous VAD loop ───────────────────────────────────────────────────────
 
 
 def _continuous_loop(
@@ -114,18 +117,31 @@ def _continuous_loop(
     cfg: Config,
     stt_backend: str,
 ) -> None:
-    """Main loop: listen → record (VAD) → transcribe → respond → repeat."""
+    """Main loop: listen → record (VAD) → transcribe → respond → repeat.
+
+    Pipeline per turn:
+      1. Waveform bar shows in red while waiting for speech
+      2. Bar turns green the instant speech is detected (on_speech_start)
+      3. Recording stops after silence_timeout (default 1.0 s)
+      4. "Sending to Groq..." spinner — immediate feedback
+      5. Transcription result shown
+      6. "Agent thinking..." spinner
+      7. Agent response streams token by token
+      8. Loop back to step 1
+    """
     ui.print_ready()
 
     try:
         while True:
-            # 1. Record until silence
+            # ── 1. Record ────────────────────────────────────────────────────
             ui.start_waveform()
             wav = record_continuous(
-                sample_rate=cfg.sample_rate,
-                silence_timeout=cfg.silence_timeout,
-                vad_aggressiveness=cfg.vad_aggressiveness,
-                on_energy=ui.update_rms,
+                sample_rate        = cfg.sample_rate,
+                silence_timeout    = cfg.silence_timeout,
+                vad_aggressiveness = cfg.vad_aggressiveness,
+                on_energy          = ui.update_rms,
+                on_speech_start    = ui.notify_speech_start,   # turns bar green
+                device             = cfg.device_index,
             )
             ui.stop_waveform()
 
@@ -133,48 +149,46 @@ def _continuous_loop(
                 ui.print_empty_transcription()
                 continue
 
-            # 2. Transcribe
+            # ── 2. Transcribe ────────────────────────────────────────────────
             with ui.status_transcribing():
                 try:
                     text = transcribe(
                         wav,
-                        backend=stt_backend,
-                        groq_api_key=cfg.groq_api_key,
+                        backend      = stt_backend,
+                        groq_api_key = cfg.groq_api_key,
                     )
                 except Exception as exc:
                     ui.print_error(f"Transcription failed: {exc}")
                     continue
 
-            if not text:
+            if not text or not text.strip():
                 ui.print_empty_transcription()
                 continue
 
             ui.print_transcription(text)
 
-            # 3. Resolve voice macros
+            # ── 3. Resolve voice macros ──────────────────────────────────────
             command = resolve(text)
 
-            # 4. Exit check
+            # ── 4. Exit check ────────────────────────────────────────────────
             if is_exit(text):
                 result = agent.send(command)
                 ui.print_macro_result(result)
                 break
 
-            # 5. Non-LLM slash commands (undo, clear, etc.)
+            # ── 5. Non-LLM slash commands (undo, clear, …) ──────────────────
             if command.startswith("/"):
                 result = agent.send(command)
                 ui.print_macro_result(result)
                 console.print()
                 continue
 
-            # 6. LLM response — stream tokens to terminal
+            # ── 6. Stream LLM response ───────────────────────────────────────
             ui.start_response()
             try:
-                full_chunks: list[str] = []
                 for chunk in agent.stream(command):
                     ui.print_response_chunk(chunk)
-                    full_chunks.append(chunk)
-                console.print()  # newline after streamed content
+                console.print()          # newline after streamed content
             except Exception as exc:
                 ui.print_error(f"Agent error: {exc}")
             finally:
@@ -186,6 +200,9 @@ def _continuous_loop(
         console.print("\n")
 
     ui.print_exit()
+
+
+# ── push-to-talk loop ─────────────────────────────────────────────────────────
 
 
 def _ptt_loop(
@@ -204,13 +221,16 @@ def _ptt_loop(
 
             ui.start_waveform()
             wav = record_push_to_talk(
-                sample_rate=cfg.sample_rate,
-                on_energy=ui.update_rms,
+                sample_rate = cfg.sample_rate,
+                on_energy   = ui.update_rms,
             )
             ui.stop_waveform()
 
             if wav is None:
-                ui.print_error("pynput is required for push-to-talk mode. Run: pip install pynput")
+                ui.print_error(
+                    "pynput is required for push-to-talk mode.\n"
+                    "Run:  pip install pynput"
+                )
                 break
 
             with ui.status_transcribing():
@@ -220,7 +240,7 @@ def _ptt_loop(
                     ui.print_error(f"Transcription failed: {exc}")
                     continue
 
-            if not text:
+            if not text or not text.strip():
                 ui.print_empty_transcription()
                 continue
 
