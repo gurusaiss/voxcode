@@ -179,7 +179,11 @@ class GroqAgent:
         """Extract the last fenced code block from history and write to disk."""
         code, lang = self._last_code_block()
         if code is None:
-            return "[Save] No code block found in the last response. Ask the agent to write code first."
+            return (
+                "[Save] No code block found.\n"
+                "  Make sure the agent responded with a fenced code block (```...```).\n"
+                "  Try asking again: 'write the code again' then say 'save that'."
+            )
 
         if filename is None:
             ext   = _lang_to_ext(lang)
@@ -193,7 +197,12 @@ class GroqAgent:
             with open(fname, "w", encoding="utf-8") as fh:
                 fh.write(code)
             self._last_saved_file = fname
-            return f"[Saved] Code written to {fname}  ({len(code.splitlines())} lines)"
+            abs_path = os.path.abspath(fname)
+            lines    = len(code.splitlines())
+            return (
+                f"[Saved] {abs_path}\n"
+                f"  {lines} line(s) written."
+            )
         except OSError as exc:
             return f"[Save] Failed to write {fname}: {exc}"
 
@@ -217,8 +226,9 @@ class GroqAgent:
             out  = result.stdout.strip()
             err  = result.stderr.strip()
             code = result.returncode
+            abs_path = os.path.abspath(self._last_saved_file)
 
-            lines = [f"[Run] {self._last_saved_file}  (exit code {code})"]
+            lines = [f"[Run] {abs_path}  (exit {code})"]
             if out:
                 lines.append(out)
             if err:
@@ -261,10 +271,20 @@ class GroqAgent:
         return False
 
     def _last_code_block(self) -> tuple[str | None, str]:
-        """Return (code, language) of the last fenced block in assistant history."""
+        """Return (code, language) of the last fenced block in assistant history.
+
+        Handles all common LLM code block formats:
+          ```python\n...```          standard
+          ```python # comment\n...``` language + trailing comment
+          ```\n...```                 no language tag
+          ``` python\n...```         space before language
+        """
+        # Pattern: optional space, language word, anything until newline, then code
+        pattern = re.compile(r"```[ \t]*(\w*)[^\n]*\n(.*?)```", re.DOTALL)
+
         for msg in reversed(self._history):
             if msg.role == "assistant":
-                blocks = re.findall(r"```(\w*)\n(.*?)```", msg.content, re.DOTALL)
+                blocks = pattern.findall(msg.content)
                 if blocks:
                     lang, code = blocks[-1]
                     return code.strip(), lang.lower()
