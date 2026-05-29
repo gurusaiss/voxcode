@@ -77,7 +77,7 @@ MACROS: dict[str, str] = {
 # Matches: "save as main.py", "save that as utils.py", "save to solution.py"
 
 _SAVE_AS = re.compile(
-    r"^save(?:\s+that)?\s+(?:as|to)\s+([\w\-]+(?:\.\w+)?)\.?\s*$",
+    r"^save(?:\s+that)?\s+(?:as|to)\s+([\w\-]+(?:\.\w+)?)[.!?]?\s*$",
     re.IGNORECASE,
 )
 

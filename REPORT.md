@@ -100,7 +100,7 @@ The full edit → save → run → iterate cycle is hands-free:
 
 No other submission is likely to close this loop.  Most voice wrappers stop at
 displaying the agent's response, requiring keyboard/mouse to copy-paste and
-execute code.  By adding `/save` and `/run` as voice macros, VoxCode eliminates
+execute code.  By adding `/save` and `/run` as voice macros, the Voice Terminal Agent eliminates
 the last remaining manual steps from the coding workflow.
 
 Additional voice-accessible operations:
@@ -122,12 +122,6 @@ programming keywords (e.g., "async" → "a sync", "kwargs" → "key args").  Thi
 could be addressed by a post-processing step that corrects common coding terms
 using a custom vocabulary list — not implemented in this version to keep the
 scope tight.
-
-**No file edit integration.**  The agent generates code but does not
-automatically write files to disk.  Aider does this natively.  Adding file
-write support (extract code blocks from responses and apply them) is a natural
-next extension but was excluded to avoid scope creep within the one-week
-timeline.
 
 **Groq rate limits.**  The free tier caps at 30 RPM for the LLM model.  A
 rapid sequence of short turns could hit this limit.  In practice, voice
@@ -177,7 +171,7 @@ imperceptible in conversational use.
    coding-term transcription errors (e.g. "a sink" → "async", "key args" →
    "kwargs") before sending to the agent.
 2. **Session save / restore** — persist conversation history to
-   `~/.voxcode/sessions/` so work can resume across invocations.
+   `~/.voice-agent/sessions/` so work can resume across invocations.
 3. **Multi-file editing** — track which files have been modified and support
    "show me solution.py" or "edit the function in utils.py" via voice.
 4. **Wake-word activation** — replace continuous VAD with a wake word ("Hey

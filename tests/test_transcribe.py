@@ -1,6 +1,6 @@
 """Unit tests for the transcription pipeline (mocked — no API calls made)."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 import pytest
 
 from voice_agent.audio.transcribe import transcribe

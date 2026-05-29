@@ -27,12 +27,18 @@ def load_config() -> Config:
             "Copy .env.example to .env and add your key from https://console.groq.com"
         )
     raw_device = os.getenv("DEVICE_INDEX", "").strip()
+    vad_aggressiveness = int(os.getenv("VAD_AGGRESSIVENESS", "2"))
+    if not (0 <= vad_aggressiveness <= 3):
+        raise EnvironmentError(
+            f"VAD_AGGRESSIVENESS must be 0–3, got {vad_aggressiveness}.\n"
+            "Valid values: 0 (permissive) to 3 (strict)."
+        )
     return Config(
         groq_api_key=key,
         stt_backend=os.getenv("STT_BACKEND", "groq"),
         agent_model=os.getenv("AGENT_MODEL", "llama-3.3-70b-versatile"),
         record_mode=os.getenv("RECORD_MODE", "continuous"),
-        vad_aggressiveness=int(os.getenv("VAD_AGGRESSIVENESS", "2")),
+        vad_aggressiveness=vad_aggressiveness,
         silence_timeout=float(os.getenv("SILENCE_TIMEOUT", "1.0")),
         sample_rate=int(os.getenv("SAMPLE_RATE", "16000")),
         device_index=int(raw_device) if raw_device.isdigit() else None,

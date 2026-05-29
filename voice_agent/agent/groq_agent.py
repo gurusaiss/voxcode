@@ -7,7 +7,8 @@ wrapping aider directly because:
   1. aider's stdin/PTY integration is fragile on Windows (no native PTY).
   2. Building the agent layer explicitly demonstrates the observe→reason→act
      loop more transparently, which is the evaluation goal.
-  3. Groq's free tier (8 000 RPM on llama-3.3-70b-versatile) imposes no cost.
+  3. Groq's free tier (30 RPM on llama-3.3-70b-versatile) imposes no cost
+     for typical voice interaction, which is naturally paced well below the limit.
 
 Voice-exclusive commands (not in typical agents):
   /save [filename]  — extract last code block and write to disk

@@ -212,9 +212,22 @@ def _continuous_loop(
                 continue
 
             # ── 6. Stream LLM response ───────────────────────────────────────
+            # Pull the first token under a spinner so there is always visual
+            # feedback during the Groq network round-trip (200–400 ms).
+            try:
+                stream = agent.stream(command)
+                with ui.status_thinking():
+                    first_chunk = next(stream, None)
+            except Exception as exc:
+                ui.print_error(f"Agent error: {exc}")
+                console.print()
+                continue
+
             ui.start_response()
             try:
-                for chunk in agent.stream(command):
+                if first_chunk is not None:
+                    ui.print_response_chunk(first_chunk)
+                for chunk in stream:
                     ui.print_response_chunk(chunk)
                 console.print()          # newline after streamed content
             except Exception as exc:

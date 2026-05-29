@@ -1,22 +1,20 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="voice-terminal-agent",
+    name="voxcode",
     version="1.0.0",
     description="Hands-free voice interface for a terminal AI coding agent",
-    author="Guru Sai Sumith",
     packages=find_packages(),
     python_requires=">=3.10",
     install_requires=[
         "sounddevice>=0.4.6",
         "numpy>=1.24.0",
         "scipy>=1.10.0",
-        "webrtcvad>=2.0.10",
+        "webrtcvad-wheels>=2.0.10",   # prebuilt binaries — no C compiler needed
         "groq>=0.9.0",
         "rich>=13.7.0",
         "click>=8.1.0",
         "python-dotenv>=1.0.0",
-        "pyyaml>=6.0",
         "pynput>=1.7.6",
     ],
     extras_require={
@@ -24,7 +22,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "voice-agent=voice_agent.main:cli",
+            "voxcode=voice_agent.main:cli",
         ],
     },
     classifiers=[
