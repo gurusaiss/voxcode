@@ -6,6 +6,7 @@ Fallback: faster-whisper    (local CPU inference, no API needed)
 
 import io
 import os
+import sys
 import tempfile
 from typing import Literal
 
@@ -33,6 +34,9 @@ def transcribe_groq(wav_bytes: bytes, api_key: str) -> str:
 
 # ── Local Whisper (faster-whisper) ────────────────────────────────────────────
 
+# Module-level cache so the model is loaded only once per process.
+_local_model_cache: dict[str, object] = {}
+
 
 def transcribe_local(
     wav_bytes: bytes,
@@ -41,6 +45,7 @@ def transcribe_local(
     """Transcribe offline using faster-whisper running on CPU.
 
     The model is downloaded once and cached in ~/.cache/huggingface.
+    Subsequent calls reuse the in-process model — no reload overhead.
     'base' (~140 MB) balances speed and accuracy for developer use.
     """
     try:
@@ -51,13 +56,18 @@ def transcribe_local(
             "Run: pip install faster-whisper  (or use --stt groq)"
         ) from e
 
+    if model_size not in _local_model_cache:
+        _local_model_cache[model_size] = WhisperModel(
+            model_size, device="cpu", compute_type="int8"
+        )
+    model = _local_model_cache[model_size]
+
     # Write wav bytes to a temp file; faster-whisper requires a file path
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         f.write(wav_bytes)
         tmp_path = f.name
 
     try:
-        model = WhisperModel(model_size, device="cpu", compute_type="int8")
         segments, _ = model.transcribe(tmp_path, language="en", beam_size=1)
         return " ".join(seg.text for seg in segments).strip()
     finally:
@@ -78,8 +88,9 @@ def transcribe(
         try:
             return transcribe_groq(wav_bytes, groq_api_key)
         except Exception as exc:
-            # Graceful fallback — surface the warning but don't crash
-            print(f"\n[warn] Groq STT failed ({exc}), falling back to local whisper")
+            # Graceful fallback — write to stderr so it doesn't break Rich's UI
+            print(f"\n[warn] Groq STT failed ({exc}), falling back to local whisper",
+                  file=sys.stderr, flush=True)
             return transcribe_local(wav_bytes, local_model_size)
 
     return transcribe_local(wav_bytes, local_model_size)

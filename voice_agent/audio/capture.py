@@ -100,10 +100,12 @@ def record_continuous(
 def record_push_to_talk(
     sample_rate: int = 16000,
     on_energy: Optional[Callable[[float], None]] = None,
+    device: Optional[int] = None,
 ) -> Optional[bytes]:
     """Record while the user holds SPACE, stop on release.
 
     Falls back gracefully if pynput is unavailable.
+    Returns None if pynput is missing or SPACE was never pressed within 60 s.
     """
     try:
         from pynput import keyboard as kb
@@ -127,10 +129,14 @@ def record_push_to_talk(
     listener = kb.Listener(on_press=on_press, on_release=on_release)
     listener.start()
 
-    # Wait for spacebar press
-    start_event.wait(timeout=60)
+    # Wait up to 60 s for the user to press SPACE
+    pressed = start_event.wait(timeout=60)
+    if not pressed:
+        listener.stop()
+        return None
 
-    with sd.InputStream(samplerate=sample_rate, channels=CHANNELS, dtype=DTYPE) as stream:
+    with sd.InputStream(samplerate=sample_rate, channels=CHANNELS, dtype=DTYPE,
+                        device=device) as stream:
         while not stop_event.is_set():
             chunk, _ = stream.read(fsize)
             chunk = chunk[:, 0]

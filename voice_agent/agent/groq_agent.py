@@ -255,8 +255,11 @@ class GroqAgent:
             for d in dirs:
                 lines.append(f"  [dir]  {d}/")
             for f in files:
-                size = os.path.getsize(f)
-                lines.append(f"  [file] {f}  ({_human_size(size)})")
+                try:
+                    size_str = _human_size(os.path.getsize(f))
+                except OSError:
+                    size_str = "?"
+                lines.append(f"  [file] {f}  ({size_str})")
             return "\n".join(lines) if len(lines) > 1 else f"[Directory] {cwd}  (empty)"
         except OSError as exc:
             return f"[ls] {exc}"

@@ -264,6 +264,7 @@ def _ptt_loop(
             wav = record_push_to_talk(
                 sample_rate = cfg.sample_rate,
                 on_energy   = ui.update_rms,
+                device      = cfg.device_index,
             )
             ui.stop_waveform()
 

@@ -6,9 +6,10 @@ scipy>=1.10.0
 # Voice Activity Detection (webrtcvad-wheels ships prebuilt binaries for all platforms)
 webrtcvad-wheels>=2.0.10
 
-# Speech-to-Text (primary: Groq API, fallback: local)
+# Speech-to-Text — Groq API (primary, free tier, ~200 ms latency)
 groq>=0.9.0
-faster-whisper>=1.0.0
+# faster-whisper is OPTIONAL — only needed for offline STT (--stt local)
+# Install with:  pip install faster-whisper   or   pip install ".[local-stt]"
 
 # Terminal UI
 rich>=13.7.0
@@ -16,7 +17,6 @@ click>=8.1.0
 
 # Config & env
 python-dotenv>=1.0.0
-pyyaml>=6.0
 
 # Optional: push-to-talk key detection
 pynput>=1.7.6

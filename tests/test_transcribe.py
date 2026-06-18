@@ -56,3 +56,53 @@ class TestCommandResolution:
         from voice_agent.agent.commands import resolve
         assert resolve("EXIT") == "/exit"
         assert resolve("UNDO THAT") == "/undo"
+
+    # ── new command macros ────────────────────────────────────────────────────
+
+    def test_save_macros(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("save") == "/save"
+        assert resolve("save that") == "/save"
+        assert resolve("save the code") == "/save"
+        assert resolve("write to file") == "/save"
+
+    def test_run_macros(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("run") == "/run"
+        assert resolve("run that") == "/run"
+        assert resolve("run the code") == "/run"
+        assert resolve("execute that") == "/run"
+
+    def test_ls_macros(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("list directory") == "/ls"
+        assert resolve("show directory") == "/ls"
+        assert resolve("what's here") == "/ls"
+
+    # ── save-with-filename regex ──────────────────────────────────────────────
+
+    def test_save_as_with_extension(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("save as main.py") == "/save main.py"
+        assert resolve("save that as utils.py") == "/save utils.py"
+        assert resolve("save to solution.py") == "/save solution.py"
+
+    def test_save_as_infers_py_extension(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("save as main") == "/save main.py"
+        assert resolve("save that as solution") == "/save solution.py"
+
+    def test_save_as_strips_trailing_punctuation(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("save as main.py.") == "/save main.py"
+        assert resolve("save that as utils.py!") == "/save utils.py"
+        assert resolve("save as solution.py?") == "/save solution.py"
+
+    def test_save_as_case_insensitive(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("Save That As Main.py") == "/save Main.py"
+        assert resolve("SAVE AS UTILS.PY") == "/save UTILS.PY"
+
+    def test_save_as_hyphenated_name(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("save as my-script.py") == "/save my-script.py"
