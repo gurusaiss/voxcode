@@ -1,67 +1,50 @@
-# Voice Terminal Agent
+# VoxCode — Voice Interface for aider
 
-> **A fully hands-free voice interface for a terminal AI coding agent.**  
-> Speak naturally — your words are transcribed and sent to a Groq-powered coding agent in real time. Responses stream directly to the terminal. No mouse required. Minimal keyboard interaction.
+> **Hands-free voice input layer for [aider](https://github.com/paul-gauthier/aider), the open-source terminal coding agent.**
+> Speak naturally — your words are transcribed by Groq Whisper and forwarded to aider as queries. Aider handles all code editing and displays responses on screen. No mouse. Minimal keyboard.
 
 ---
 
 ## Demo setup time
 
-**Under 2 minutes** (install deps + paste API key).  
-Pre-installed environments: **under 30 seconds**.
+**Under 3 minutes** (install deps + paste API key).
+Pre-installed environments: **under 60 seconds**.
+
+---
+
+## What it does
+
+```
+You speak  →  Groq Whisper transcribes (~200 ms)  →  aider receives the text
+                                                    →  aider edits files, streams response
+You speak  →  ...
+```
+
+The voice interface provides the **input layer only**. aider owns all LLM interaction, code editing, diff display, and git integration — exactly as it would in a normal terminal session. The only difference is that your words arrive by voice instead of keyboard.
 
 ---
 
 ## What it looks like
 
 ```
-╭────────────────────────────────────────────────────────────────╮
-│   VOICE CODING AGENT  |  voice-driven terminal AI  |  Groq    │
-│        model: llama-3.3-70b-versatile  |  mode: continuous    │
-╰────────────────────────────────────────────────────────────────╯
+╭─ VOICE INTERFACE FOR AIDER ─────────────────────────────────────────╮
+│   voice-driven input layer  |  Groq STT                             │
+│   model: groq/llama-3.3-70b-versatile  |  mode: continuous          │
+╰─────────────────────────────────────────────────────────────────────╯
 
-╭─ Help ─────────────────────────────────────────────────────────╮
-│ Keyboard shortcuts                                             │
-│   Ctrl+C  - exit session                                       │
-│                                                                │
-│ Voice macros                                                   │
-│   /exit    -> "exit", "quit", "goodbye"                       │
-│   /undo    -> "undo", "undo that", "revert"                   │
-│   /clear   -> "clear", "reset", "start over"                  │
-│   /files   -> "show files", "list files"                      │
-│   /help    -> "help", "what can you do"                       │
-╰────────────────────────────────────────────────────────────────╯
+* Listening...  (speak naturally — pause to send to aider)
 
-* Listening...  (speak naturally - pause to send)
+* REC    ........................................    12 rms   <- waiting (red)
+* HEARD  ###########################.............   847 rms   <- speech detected (green)
 
-* REC    ........................................   12 rms   <- waiting (red)
-* HEARD  ###########################.............  847 rms   <- speech detected (green)
+                    Transcribing speech...   <- Groq Whisper spinner (~200 ms)
 
-                    Transcribing speech...   <- spinner (~200 ms)
+╭─ You  (turn 3) ────────────────────────────────────────────────────╮
+│  Add error handling so balance can't go negative                   │
+╰────────────────────────────────────────────────────────────────────╯
+  ↳ aider
 
-╭─ You  (turn 3) ────────────────────────────────────────────────╮
-│  Add error handling so balance can't go negative               │
-╰────────────────────────────────────────────────────────────────╯
-
-──────────────────────────── Agent ─────────────────────────────
-Here's the updated `BankAccount` class with balance validation:
-
-```python
-class BankAccount:
-    def __init__(self, owner: str, balance: float = 0.0):
-        self._balance = balance
-        self.owner = owner
-
-    def withdraw(self, amount: float) -> None:
-        if amount > self._balance:
-            raise ValueError(
-                f"Insufficient funds: balance is {self._balance}"
-            )
-        self._balance -= amount
-```
-
-The `withdraw` method now raises `ValueError` before deducting.
-────────────────────────────────────────────────────────────────
+<aider renders its own response, diffs, and file edits here>
 ```
 
 ---
@@ -71,33 +54,26 @@ The `withdraw` method now raises `ValueError` before deducting.
 - **Python 3.10+**
 - **A microphone** (any built-in or USB mic)
 - **Groq API key** — free at [console.groq.com](https://console.groq.com) (no credit card)
+- **Git** — aider works best inside a git repository
 
 ---
 
 ## Installation
 
 ```bash
-# 1. Extract the project and enter the directory
-cd voice-terminal-agent
+# 1. Enter your project directory (git repo)
+cd your-project
 
-# 2. Create a virtual environment (recommended)
-python -m venv .venv
+# 2. Extract voxcode and install
+pip install -r /path/to/voxcode/requirements.txt
 
-# Activate — Windows
-.venv\Scripts\activate
-
-# Activate — macOS / Linux
-source .venv/bin/activate
-
-# 3. Install all dependencies
-pip install -r requirements.txt
-
-# 4. Add your API key
+# 3. Add your API key
 cp .env.example .env
 # Open .env and set: GROQ_API_KEY=gsk_...your_key_here...
 ```
 
-That's it. No dataset downloads, no model weights to fetch, no database setup.
+> **Note:** `aider-chat` is included in `requirements.txt` and installed automatically.  
+> A git repository is recommended — run `git init` if your project directory isn't one yet.
 
 ---
 
@@ -116,67 +92,45 @@ python -m voice_agent --stt local
 # List microphone devices (if default mic is wrong)
 python -m voice_agent --list-devices
 
-# Print all voice macros and exit
+# Show all voice macros
 python -m voice_agent --help-macros
 
-# Use a different Groq model
-python -m voice_agent --model llama-3.1-8b-instant
+# Use a different model (any litellm-compatible model string)
+python -m voice_agent --model claude-3-5-sonnet-20241022
+python -m voice_agent --model gpt-4o
 ```
 
 **First run walkthrough:**
-1. Run `python -m voice_agent`
-2. The banner and help panel appear
-3. You see `* Listening...` — start speaking
-4. Pause for ~1.5 seconds → recording stops automatically
-5. A spinner shows `Transcribing...` (~200 ms)
-6. The agent response streams to the terminal immediately
-7. The system loops back to listening
+1. `cd` into your project directory (git repo)
+2. Run `python -m voice_agent`
+3. aider initialises, the banner and help panel appear
+4. You see `* Listening...` — start speaking
+5. Pause for ~1 second → recording stops automatically
+6. A spinner shows `Transcribing...` (~200 ms)
+7. Your words are forwarded to aider — aider responds as normal
+8. The system loops back to listening
 
 No key presses needed between turns.
 
 ---
 
-## Voice macros — the hands-free layer
+## Voice macros
 
-Every essential session action is accessible by voice. Macro matching is case-insensitive and tolerates trailing punctuation.
+Voice macros map natural spoken phrases to aider's built-in slash commands. All are forwarded to `aider.run()` — aider handles them natively.
 
-| Say this | Sends | Effect |
+| Say this | Sends to aider | Effect |
 |---|---|---|
-| "exit" / "quit" / "goodbye" | `/exit` | End session cleanly |
-| "undo" / "undo that" / "revert" | `/undo` | Remove last exchange from context |
-| "clear" / "reset" / "start over" | `/clear` | Reset conversation history |
-| "save that" / "write to file" | `/save` | **Save last code block to disk** (auto-named) |
-| "save that as main.py" | `/save main.py` | **Save with a specific filename** |
-| "run that" / "run the code" | `/run` | **Execute the last saved file** |
-| "show directory" / "list directory" | `/ls` | List current directory contents |
-| "show files" / "list files" | `/files` | List filenames mentioned in session |
-| "help" / "what can you do" | `/help` | Show all commands |
-| "show history" | `/history` | Summarise the session so far |
+| "exit" / "quit" / "goodbye" | *(exits the voice loop)* | End session |
+| "undo" / "undo that" | `/undo` | Undo last aider edit |
+| "clear" / "start over" | `/clear` | Clear conversation context |
+| "show files" / "list files" | `/ls` | List files in aider's context |
+| "show diff" / "what changed" | `/diff` | Show uncommitted changes |
+| "commit" / "commit changes" | `/commit` | Commit current edits to git |
+| "add main.py" | `/add main.py` | Add file to aider's context |
+| "drop utils.py" | `/drop utils.py` | Remove file from context |
+| "help" / "show commands" | `/help` | Show aider's help |
 
-### The complete hands-free coding loop
-
-```
-You say:  "Write a function that reads a CSV file and prints the first 5 rows"
-Agent:    streams Python code to terminal
-
-You say:  "Save that as read_csv.py"
-Agent:    [Saved] Code written to read_csv.py  (12 lines)
-
-You say:  "Run that"
-Agent:    [Run] read_csv.py (exit code 0)
-          name, age, city
-          Alice, 30, London
-          ...
-
-You say:  "Add error handling if the file doesn't exist"
-Agent:    streams updated code
-
-You say:  "Save that as read_csv.py"
-          "Run that"
-          "Exit"
-```
-
-**Zero keyboard. Zero mouse. End to end.**
+All other spoken text is forwarded to aider as a natural-language coding request.
 
 ---
 
@@ -184,17 +138,16 @@ You say:  "Save that as read_csv.py"
 
 | Interaction | Hands-free? | Notes |
 |---|---|---|
-| Coding requests | ✅ 100% | Speak naturally |
-| Save code to disk | ✅ 100% | "save that" / "save as main.py" |
-| Run saved code | ✅ 100% | "run that" |
-| List directory | ✅ 100% | "show directory" |
-| Undo last turn | ✅ 100% | "undo that" |
-| Reset session | ✅ 100% | "clear" |
+| Coding requests | ✅ 100% | Speak naturally to aider |
+| File edits | ✅ 100% | aider applies changes directly |
+| Add/drop files in context | ✅ 100% | "add main.py" |
+| Undo edits | ✅ 100% | "undo that" |
+| View diff | ✅ 100% | "show diff" |
+| Commit to git | ✅ 100% | "commit" |
+| Reset context | ✅ 100% | "clear" |
 | Exit session | ✅ 100% | "exit" |
 | Start the program | ⚠️ One command | `python -m voice_agent` |
 | Stop (fallback) | ⚠️ Ctrl+C | Only if voice exit fails |
-
-**In continuous VAD mode:** once the program is running, zero keyboard input is required. The entire edit → save → run → iterate cycle is voice-controlled.
 
 ---
 
@@ -208,7 +161,7 @@ Microphone (sounddevice)
 VAD (webrtcvad / energy fallback)
       |
       | speech detected? accumulate frames
-      | silence for 1.5 s? → flush buffer
+      | silence for 1.0 s? → flush buffer
       v
 WAV bytes (in-memory, never written to disk)
       |
@@ -222,44 +175,57 @@ Plain text transcription
       |
       v
 Voice macro resolver (commands.py)
-      |--- known phrase? --> slash command (/undo, /clear, /exit, ...)
+      |--- known phrase? --> aider slash command (/undo, /clear, /add <f>, ...)
       |--- unknown?      --> text passes through unchanged
       |
       v
-GroqAgent (groq_agent.py)
-      |--- slash command? --> handle locally, no LLM call
-      |--- text query?    --> Groq chat completion (streaming)
+AiderBridge.run(text)  [aider_bridge.py]
       |
-      | token stream
       v
-Rich terminal renderer (display.py)
+aider Coder.run(text)  ← aider takes over from here
+      |--- sends to LLM (groq/llama-3.3-70b-versatile via litellm)
+      |--- applies file edits
+      |--- renders response, diffs, confirmations to terminal
       |
       v
 Loop back to microphone
 ```
 
-Each stage is a standalone module. The audio pipeline has no knowledge of the agent. The agent has no knowledge of audio. This makes each stage independently testable and swappable.
+The voice interface is a pure input layer. It has no knowledge of code, files, or LLM responses — that is aider's job.
 
 ---
 
 ## Configuration (`.env`)
 
-Copy `.env.example` to `.env` and edit:
-
 | Variable | Default | Description |
 |---|---|---|
-| `GROQ_API_KEY` | *(required)* | Your Groq API key |
+| `GROQ_API_KEY` | *(required)* | Your Groq API key — used for STT and aider LLM |
 | `STT_BACKEND` | `groq` | `groq` (Whisper API) or `local` (faster-whisper) |
-| `AGENT_MODEL` | `llama-3.3-70b-versatile` | Any Groq-hosted chat model |
+| `AIDER_MODEL` | `groq/llama-3.3-70b-versatile` | Any litellm model string |
 | `RECORD_MODE` | `continuous` | `continuous` (VAD) or `ptt` (push-to-talk) |
 | `VAD_AGGRESSIVENESS` | `2` | 0 = permissive → 3 = strict |
 | `SILENCE_TIMEOUT` | `1.0` | Seconds of post-speech silence before sending |
 | `SAMPLE_RATE` | `16000` | Microphone sample rate in Hz |
 | `DEVICE_INDEX` | *(system default)* | Mic device number — see `--list-devices` |
 
+### Using a different LLM
+
+aider supports any litellm-compatible model. Set `AIDER_MODEL` in `.env` and provide the matching API key:
+
+```bash
+# Anthropic Claude (needs ANTHROPIC_API_KEY)
+AIDER_MODEL=claude-3-5-sonnet-20241022
+
+# OpenAI GPT-4o (needs OPENAI_API_KEY)
+AIDER_MODEL=gpt-4o
+
+# Groq (default, free tier, needs GROQ_API_KEY)
+AIDER_MODEL=groq/llama-3.3-70b-versatile
+```
+
 ---
 
-## Offline / no-API mode
+## Offline / no-API STT
 
 ```bash
 pip install faster-whisper
@@ -270,7 +236,7 @@ Set in `.env`:
 STT_BACKEND=local
 ```
 
-STT now runs fully locally (no internet). The LLM still uses Groq's API — there is no free locally-runnable model at `llama-3.3-70b-versatile` quality, but `faster-whisper` makes transcription free and offline.
+STT now runs fully locally (~1–2 s latency). The aider LLM still calls the API — there is no free locally-runnable model at `llama-3.3-70b-versatile` quality, but `faster-whisper` makes transcription free and offline.
 
 ---
 
@@ -281,26 +247,15 @@ pip install pytest
 pytest tests/ -v
 ```
 
-Tests use mocked APIs — **no microphone, no API key required**:
-
-```
-tests/test_audio.py       — VAD logic, energy fallback, WAV encoding (10 tests)
-tests/test_transcribe.py  — STT dispatch, Groq/local selection, macro resolution (6 tests)
-```
-
-If your system `pytest` has a broken third-party plugin at startup:
-```bash
-python -m pytest tests/ -v -p no:langsmith
-```
+Tests use mocked APIs — **no microphone, no API key required**.
 
 ---
 
 ## Cost
 
-**$0.** Groq's free tier provides:
+**$0 with default settings.** Groq's free tier provides:
 - **7,200 minutes/day** of Whisper audio transcription
 - **500,000 tokens/minute** on `llama-3.3-70b-versatile`
-- **14,400 API requests/day**
 
 A typical 15-turn demo session uses ~4 minutes of audio and ~6,000 tokens — well under 0.1% of the daily free allowance.
 
@@ -309,24 +264,24 @@ A typical 15-turn demo session uses ~4 minutes of audio and ~6,000 tokens — we
 ## Project structure
 
 ```
-voice-terminal-agent/
+voxcode/
 ├── voice_agent/
-│   ├── __main__.py        # Enables `python -m voice_agent`
-│   ├── main.py            # CLI definition and session loop (continuous + ptt)
-│   ├── config.py          # .env loader, Config dataclass
+│   ├── __main__.py          # Enables `python -m voice_agent`
+│   ├── main.py              # CLI definition and session loop
+│   ├── config.py            # .env loader, Config dataclass
 │   ├── audio/
-│   │   ├── capture.py     # Microphone recording + VAD auto-stop loop
-│   │   ├── vad.py         # webrtcvad wrapper with energy-threshold fallback
-│   │   └── transcribe.py  # STT dispatcher — Groq Whisper or faster-whisper
+│   │   ├── capture.py       # Microphone recording + VAD auto-stop
+│   │   ├── vad.py           # webrtcvad wrapper + energy fallback
+│   │   └── transcribe.py    # STT dispatcher — Groq Whisper or faster-whisper
 │   ├── agent/
-│   │   ├── groq_agent.py  # Groq-backed coding agent (streaming, history, slash cmds)
-│   │   └── commands.py    # Voice macro → slash command resolver
+│   │   ├── aider_bridge.py  # Wraps aider's Python API (Coder.run)
+│   │   └── commands.py      # Voice macro → aider slash command resolver
 │   └── ui/
-│       └── display.py     # Rich terminal UI — waveform, panels, streaming output
+│       └── display.py       # Rich terminal UI — waveform, transcription panel
 ├── tests/
-│   ├── test_audio.py      # Unit tests: VAD, frame size, WAV encoding
-│   └── test_transcribe.py # Unit tests: STT dispatch, macro resolution
-├── .env.example           # Environment variable template
+│   ├── test_audio.py        # VAD, frame size, WAV encoding
+│   └── test_transcribe.py   # STT dispatch, macro resolution
+├── .env.example
 ├── .gitignore
 ├── requirements.txt
 ├── setup.py
@@ -339,22 +294,22 @@ voice-terminal-agent/
 
 ## Troubleshooting
 
-**`No module named sounddevice`**  
+**`No module named sounddevice`**
 → `pip install sounddevice`
 
-**`PortAudio not found` on Linux**  
+**`PortAudio not found` on Linux**
 → `sudo apt install portaudio19-dev` then `pip install sounddevice`
 
-**`webrtcvad-wheels` build fails**  
-→ The system falls back to energy-based VAD automatically. No action needed.
+**aider says "No git repo found"**
+→ Run `git init` in your project directory. aider works without git but warns.
 
-**Groq API key error at startup**  
-→ Ensure `.env` exists (not just `.env.example`) and contains a valid `GROQ_API_KEY=gsk_...`
+**Groq API key error at startup**
+→ Ensure `.env` exists and contains a valid `GROQ_API_KEY=gsk_...`
 
-**Wrong microphone selected**  
+**Wrong microphone selected**
 → `python -m voice_agent --list-devices` then set `DEVICE_INDEX=<number>` in `.env`
 
-**VAD triggers on background noise**  
+**VAD triggers on background noise**
 → Increase `VAD_AGGRESSIVENESS=3` in `.env`, or use `--mode ptt`
 
 ---

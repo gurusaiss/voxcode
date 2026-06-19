@@ -10,7 +10,7 @@ from rich.console import Console
 from voice_agent.config import load_config, Config
 from voice_agent.audio.capture import record_continuous, record_push_to_talk, list_devices
 from voice_agent.audio.transcribe import transcribe
-from voice_agent.agent.groq_agent import GroqAgent
+from voice_agent.agent.aider_bridge import AiderBridge
 from voice_agent.agent.commands import resolve, is_exit, describe_macros
 from voice_agent.ui.display import AgentUI
 
@@ -34,7 +34,7 @@ from voice_agent.ui.display import AgentUI
 @click.option(
     "--model",
     default=None,
-    help="LLM model for the coding agent (default: llama-3.3-70b-versatile)",
+    help="aider LLM model (default: groq/llama-3.3-70b-versatile)",
 )
 @click.option("--list-devices", "show_devices", is_flag=True, help="List audio input devices and exit")
 @click.option("--help-macros", "show_macros", is_flag=True, help="Show all voice macros and exit")
@@ -45,13 +45,14 @@ def cli(
     show_devices: bool,
     show_macros: bool,
 ) -> None:
-    """Voice Terminal Agent — hands-free voice interface for a terminal AI coding agent.
+    """Voice Terminal Agent — hands-free voice interface for aider.
 
     \b
     Quick start:
-      1. Copy .env.example to .env and add your GROQ_API_KEY
-      2. Run:  python -m voice_agent
-      3. Speak.  Pause to send.  Say "exit" to quit.
+      1. cd into your project directory (git repo recommended)
+      2. Copy .env.example to .env and add your GROQ_API_KEY
+      3. Run:  python -m voice_agent
+      4. Speak.  Pause to send.  Say "exit" to quit.
     """
     console = Console()
 
@@ -73,7 +74,7 @@ def cli(
     # CLI flags override .env settings
     effective_mode  = mode  or cfg.record_mode
     effective_stt   = stt   or cfg.stt_backend
-    effective_model = model or cfg.agent_model
+    effective_model = model or cfg.aider_model
 
     _run_session(console, cfg, effective_mode, effective_stt, effective_model)
 
@@ -86,10 +87,16 @@ def _run_session(
     cfg: Config,
     mode: str,
     stt_backend: str,
-    agent_model: str,
+    aider_model: str,
 ) -> None:
-    ui    = AgentUI(console, model=agent_model, mode=mode)
-    agent = GroqAgent(api_key=cfg.groq_api_key, model=agent_model)
+    ui = AgentUI(console, model=aider_model, mode=mode)
+
+    console.print("[dim]Starting aider...[/dim]")
+    try:
+        agent = AiderBridge(groq_api_key=cfg.groq_api_key, model=aider_model)
+    except Exception as exc:
+        console.print(f"[red]Failed to initialise aider:[/red] {exc}")
+        sys.exit(1)
 
     ui.print_banner()
     ui.print_help(describe_macros())
@@ -101,7 +108,6 @@ def _run_session(
     )
     console.print(f"[dim]STT: {stt_label}[/dim]\n")
 
-    # Verify microphone is accessible before entering the loop
     if not _check_microphone(console, cfg.sample_rate, cfg.device_index):
         sys.exit(1)
 
@@ -111,17 +117,17 @@ def _run_session(
         _ptt_loop(console, ui, agent, cfg, stt_backend)
 
 
-# ── startup mic check ────────────────────────────────────────────────────────
+# ── startup mic check ─────────────────────────────────────────────────────────
 
 
 def _check_microphone(console: Console, sample_rate: int, device: int | None) -> bool:
-    """Try to open the mic for 1 frame.  Print a helpful error and return False on failure."""
+    """Try to open the mic for one frame.  Print a helpful error and return False on failure."""
     try:
         import sounddevice as sd
         import numpy as np
         with sd.InputStream(samplerate=sample_rate, channels=1,
                             dtype=np.int16, device=device) as s:
-            s.read(int(sample_rate * 0.03))   # 30 ms
+            s.read(int(sample_rate * 0.03))
         console.print("[dim]Microphone OK[/dim]\n")
         return True
     except Exception as exc:
@@ -141,21 +147,20 @@ def _check_microphone(console: Console, sample_rate: int, device: int | None) ->
 def _continuous_loop(
     console: Console,
     ui: AgentUI,
-    agent: GroqAgent,
+    agent: AiderBridge,
     cfg: Config,
     stt_backend: str,
 ) -> None:
-    """Main loop: listen → record (VAD) → transcribe → respond → repeat.
+    """Main loop: listen → record (VAD) → transcribe → send to aider → repeat.
 
     Pipeline per turn:
       1. Waveform bar shows in red while waiting for speech
       2. Bar turns green the instant speech is detected (on_speech_start)
       3. Recording stops after silence_timeout (default 1.0 s)
-      4. "Sending to Groq..." spinner — immediate feedback
-      5. Transcription result shown
-      6. "Agent thinking..." spinner
-      7. Agent response streams token by token
-      8. Loop back to step 1
+      4. "Transcribing..." spinner — immediate feedback
+      5. Transcription shown in a panel
+      6. Text forwarded to aider — aider renders its own response
+      7. Loop back to step 1
     """
     ui.print_ready()
 
@@ -168,7 +173,7 @@ def _continuous_loop(
                 silence_timeout    = cfg.silence_timeout,
                 vad_aggressiveness = cfg.vad_aggressiveness,
                 on_energy          = ui.update_rms,
-                on_speech_start    = ui.notify_speech_start,   # turns bar green
+                on_speech_start    = ui.notify_speech_start,
                 device             = cfg.device_index,
             )
             ui.stop_waveform()
@@ -177,7 +182,7 @@ def _continuous_loop(
                 ui.print_empty_transcription()
                 continue
 
-            # ── 2. Transcribe ────────────────────────────────────────────────
+            # ── 2. Transcribe ─────────────────────────────────────────────────
             with ui.status_transcribing():
                 try:
                     text = transcribe(
@@ -195,45 +200,23 @@ def _continuous_loop(
 
             ui.print_transcription(text)
 
-            # ── 3. Resolve voice macros ──────────────────────────────────────
+            # ── 3. Resolve voice macros ───────────────────────────────────────
             command = resolve(text)
 
-            # ── 4. Exit check ────────────────────────────────────────────────
+            # ── 4. Exit check ─────────────────────────────────────────────────
             if is_exit(text):
-                result = agent.send(command)
-                ui.print_macro_result(result)
+                console.print("[dim]Ending session...[/dim]")
                 break
 
-            # ── 5. Non-LLM slash commands (undo, clear, …) ──────────────────
-            if command.startswith("/"):
-                result = agent.send(command)
-                ui.print_macro_result(result)
-                console.print()
-                continue
-
-            # ── 6. Stream LLM response ───────────────────────────────────────
-            # Pull the first token under a spinner so there is always visual
-            # feedback during the Groq network round-trip (200–400 ms).
+            # ── 5. Forward to aider ───────────────────────────────────────────
+            # All commands (/undo, /clear, /add <f>, /diff, …) and plain coding
+            # requests are forwarded to aider — it handles LLM calls, file edits,
+            # and terminal output entirely on its own.
+            console.print("[dim]  ↳ aider[/dim]\n")
             try:
-                stream = agent.stream(command)
-                with ui.status_thinking():
-                    first_chunk = next(stream, None)
+                agent.run(command)
             except Exception as exc:
-                ui.print_error(f"Agent error: {exc}")
-                console.print()
-                continue
-
-            ui.start_response()
-            try:
-                if first_chunk is not None:
-                    ui.print_response_chunk(first_chunk)
-                for chunk in stream:
-                    ui.print_response_chunk(chunk)
-                console.print()          # newline after streamed content
-            except Exception as exc:
-                ui.print_error(f"Agent error: {exc}")
-            finally:
-                ui.end_response()
+                ui.print_error(f"Aider error: {exc}")
 
             console.print()
 
@@ -249,11 +232,11 @@ def _continuous_loop(
 def _ptt_loop(
     console: Console,
     ui: AgentUI,
-    agent: GroqAgent,
+    agent: AiderBridge,
     cfg: Config,
     stt_backend: str,
 ) -> None:
-    """Push-to-talk loop: hold SPACE → release → transcribe → respond."""
+    """Push-to-talk loop: hold SPACE → release → transcribe → send to aider."""
     ui.print_waiting_ptt()
 
     try:
@@ -290,24 +273,14 @@ def _ptt_loop(
             command = resolve(text)
 
             if is_exit(text):
-                result = agent.send(command)
-                ui.print_macro_result(result)
+                console.print("[dim]Ending session...[/dim]")
                 break
 
-            if command.startswith("/"):
-                result = agent.send(command)
-                ui.print_macro_result(result)
-                continue
-
-            ui.start_response()
+            console.print("[dim]  ↳ aider[/dim]\n")
             try:
-                for chunk in agent.stream(command):
-                    ui.print_response_chunk(chunk)
-                console.print()
+                agent.run(command)
             except Exception as exc:
-                ui.print_error(f"Agent error: {exc}")
-            finally:
-                ui.end_response()
+                ui.print_error(f"Aider error: {exc}")
 
             console.print()
 

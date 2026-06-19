@@ -1,19 +1,19 @@
-"""Terminal UI — all Rich rendering lives here.
+"""Terminal UI — Rich rendering for the voice input layer.
 
-Session layout:
-  ┌─ VOICE CODING AGENT ──────────────────────────────────────────┐
-  │  model: llama-3.3-70b-versatile  |  mode: continuous          │
+aider owns its own terminal output (responses, diffs, edits).
+This module handles only the voice-interface layer:
+
+  ┌─ VOICE INTERFACE FOR AIDER ───────────────────────────────────┐
+  │  model: groq/llama-3.3-70b-versatile  |  mode: continuous     │
   └───────────────────────────────────────────────────────────────┘
 
   * REC   ########................................   342 rms   <- listening
-  * HEARD ##########################..............  1847 rms   <- speech detected (green)
+  * HEARD ##########################..............  1847 rms   <- speech detected
 
   ┌─ You  (turn 3) ───────────────────────────────────────────────┐
   │  Add error handling so balance can't go negative              │
   └───────────────────────────────────────────────────────────────┘
-  ──────── Agent ─────────────────────────────────────────────────
-  Here's the updated class...
-  ────────────────────────────────────────────────────────────────
+    ↳ aider                                        <- aider takes over output
 """
 
 import sys
@@ -23,7 +23,6 @@ from typing import Optional
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.rule import Rule
 from rich.text import Text
 
 
@@ -64,7 +63,7 @@ def _enable_ansi_windows() -> None:
         pass
 
 
-# ── main UI class ──────────────────────────────────────────────────────────────
+# ── main UI class ─────────────────────────────────────────────────────────────
 
 
 class AgentUI:
@@ -80,15 +79,15 @@ class AgentUI:
         self._waveform_active       = threading.Event()
         self._waveform_thread: Optional[threading.Thread] = None
 
-    # ── session lifecycle ──────────────────────────────────────────────────────
+    # ── session lifecycle ─────────────────────────────────────────────────────
 
     def print_banner(self) -> None:
         self.console.print()
         self.console.print(
             Panel(
                 Text.assemble(
-                    ("  VOICE CODING AGENT", "bold cyan"),
-                    ("  |  voice-driven terminal AI  |  Groq-powered", "dim"),
+                    ("  VOICE INTERFACE FOR AIDER", "bold cyan"),
+                    ("  |  voice-driven input layer  |  Groq STT", "dim"),
                 ),
                 subtitle=f"[dim]model: {self.model}  |  mode: {self.mode}[/dim]",
                 border_style="cyan",
@@ -101,7 +100,7 @@ class AgentUI:
             Panel(
                 f"[bold]Keyboard shortcuts[/bold]\n"
                 f"  [cyan]Ctrl+C[/cyan]  - exit session\n\n"
-                f"[bold]Voice macros[/bold]\n{macro_text}",
+                f"[bold]Voice macros[/bold]  (aider commands spoken naturally)\n{macro_text}",
                 title="[bold]Help[/bold]",
                 border_style="dim",
             )
@@ -110,7 +109,7 @@ class AgentUI:
     def print_ready(self) -> None:
         self.console.print(
             "\n[bold green]*[/bold green] [green]Listening...[/green]  "
-            "[dim](speak naturally - pause to send)[/dim]\n"
+            "[dim](speak naturally — pause to send to aider)[/dim]\n"
         )
 
     def print_waiting_ptt(self) -> None:
@@ -118,7 +117,7 @@ class AgentUI:
             "\n[bold yellow]*[/bold yellow] [yellow]Hold SPACE to record[/yellow]\n"
         )
 
-    # ── waveform ───────────────────────────────────────────────────────────────
+    # ── waveform ──────────────────────────────────────────────────────────────
 
     def update_rms(self, rms: float) -> None:
         """Called every 30 ms from the recording thread."""
@@ -150,7 +149,7 @@ class AgentUI:
         printing a new line — which is what Rich's console.print() does.
         """
         _enable_ansi_windows()
-        sys.stdout.write("\n")   # blank line — waveform renders here
+        sys.stdout.write("\n")
         sys.stdout.flush()
 
         try:
@@ -159,16 +158,14 @@ class AgentUI:
                 rms = int(self._live_rms)
 
                 if self._speech_detected:
-                    # Green — "I heard you, finishing up..."
                     prefix    = f"{_BGREEN}* HEARD{_RESET}"
                     bar_color = _GREEN
                 else:
-                    # Red — waiting for speech
                     prefix    = f"{_BRED}* REC  {_RESET}"
                     bar_color = _RED
 
                 line = (
-                    f"{_CLR}"                          # go to col 0, erase line
+                    f"{_CLR}"
                     f"{prefix}  "
                     f"{bar_color}{bar}{_RESET}  "
                     f"{_DIM}{rms:5d} rms{_RESET}"
@@ -178,7 +175,6 @@ class AgentUI:
                 time.sleep(0.04)   # ~25 fps
 
         finally:
-            # Erase the waveform line cleanly before Rich takes over again
             sys.stdout.write(f"{_CLR}\n")
             sys.stdout.flush()
 
@@ -195,25 +191,6 @@ class AgentUI:
             )
         )
 
-    def print_macro_result(self, result: str) -> None:
-        self.console.print(
-            Panel(
-                f"[dim]{result}[/dim]",
-                title="[yellow]Command[/yellow]",
-                border_style="yellow",
-                padding=(0, 2),
-            )
-        )
-
-    def start_response(self) -> None:
-        self.console.print(Rule("[bold green]Agent[/bold green]", style="green"))
-
-    def end_response(self) -> None:
-        self.console.print(Rule(style="dim"))
-
-    def print_response_chunk(self, chunk: str) -> None:
-        self.console.print(chunk, end="", highlight=False)
-
     # ── status spinners ───────────────────────────────────────────────────────
 
     def status_transcribing(self):
@@ -221,12 +198,7 @@ class AgentUI:
             "[yellow]Transcribing speech...[/yellow]", spinner="dots"
         )
 
-    def status_thinking(self):
-        return self.console.status(
-            "[green]Agent thinking...[/green]", spinner="dots2"
-        )
-
-    # ── errors & info ────────────────────────────────────────────────────────
+    # ── errors & info ─────────────────────────────────────────────────────────
 
     def print_error(self, message: str) -> None:
         self.console.print(

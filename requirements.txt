@@ -1,3 +1,6 @@
+# Terminal coding agent being wrapped
+aider-chat>=0.60.0
+
 # Audio capture
 sounddevice>=0.4.6
 numpy>=1.24.0
@@ -6,12 +9,12 @@ scipy>=1.10.0
 # Voice Activity Detection (webrtcvad-wheels ships prebuilt binaries for all platforms)
 webrtcvad-wheels>=2.0.10
 
-# Speech-to-Text — Groq API (primary, free tier, ~200 ms latency)
+# Speech-to-Text — Groq Whisper API (primary, free tier, ~200 ms latency)
 groq>=0.9.0
 # faster-whisper is OPTIONAL — only needed for offline STT (--stt local)
 # Install with:  pip install faster-whisper   or   pip install ".[local-stt]"
 
-# Terminal UI
+# Terminal UI (voice input layer)
 rich>=13.7.0
 click>=8.1.0
 

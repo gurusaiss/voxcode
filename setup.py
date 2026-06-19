@@ -3,10 +3,11 @@ from setuptools import setup, find_packages
 setup(
     name="voxcode",
     version="1.0.0",
-    description="Hands-free voice interface for a terminal AI coding agent",
+    description="Hands-free voice interface for aider — a terminal AI coding agent",
     packages=find_packages(),
     python_requires=">=3.10",
     install_requires=[
+        "aider-chat>=0.60.0",         # the terminal coding agent being wrapped
         "sounddevice>=0.4.6",
         "numpy>=1.24.0",
         "scipy>=1.10.0",

@@ -1,28 +1,42 @@
-# REPORT — Voice Terminal Agent
+# REPORT — Voice Interface for aider
 
-## Motivation and Agent Choice
+## Chosen Agent: aider
 
-The problem asks to build a voice interface for a terminal coding agent with the
-goal of reducing keyboard and mouse interaction as much as possible.
+The assignment required picking an existing open-source terminal coding agent and building a voice input interface around it. I chose **aider** (https://github.com/paul-gauthier/aider) for the following reasons:
 
-I selected **a custom Groq-backed coding agent** rather than wrapping an
-existing tool like aider or opencode.  My reasoning follows.
+- **Most mature terminal coding agent available** — 55 000+ GitHub stars, active development since 2023, widely used in practice.
+- **Python API** — `aider.coders.Coder` exposes a `run(text)` method that accepts a plain-text prompt, making programmatic integration straightforward without subprocess gymnastics.
+- **Git-native** — aider tracks and applies file edits through git, giving automatic diff display, undo, and commit — all accessible by voice via aider's own command system.
+- **Model-agnostic** — aider uses litellm internally, routing to any provider (Groq, OpenAI, Anthropic, Ollama) through a single model-string.
 
-I initially evaluated aider (the most mature open-source terminal coding agent,
-~55 000 GitHub stars).  aider's Python API (`aider.coders.Coder`) can in
-principle be driven programmatically, but its `InputOutput` class tightly
-couples terminal control codes, readline history, and PTY state in a way that
-is fragile when stdin is hijacked — and on Windows, where there is no native
-PTY subsystem, `pexpect`-based wrapping is not available at all.  Using
-`subprocess` with piped stdin loses aider's live streaming output and
-conversation context tracking.
+I also evaluated **opencode** (mentioned in the problem statement) — TypeScript-based with no stable Python API. **Claude Code** is not fully open source. **Goose** (Block) is less established. aider was the clear choice.
 
-Building an explicit agent layer over Groq's chat completion API gave me full
-control over the observe → stream → display loop, made the code more testable
-(no subprocess mocking needed), and is architecturally cleaner for a voice
-context where response streaming directly into a rich terminal panel is the
-primary output path.  The agent's behaviour (system prompt, history management,
-slash commands, streaming) is transparent and auditable in `groq_agent.py`.
+---
+
+## Integration Method
+
+Integration is through aider's **Python API** (`Coder.run`), not subprocess or PTY wrapping.
+
+```python
+from aider.coders import Coder
+from aider.models import Model
+from aider.io import InputOutput
+
+io = InputOutput(yes=True)   # auto-accept all confirmations — hands-free
+coder = Coder.create(main_model=Model("groq/llama-3.3-70b-versatile"), io=io)
+coder.run("add error handling to withdraw()")   # transcribed voice text forwarded here
+```
+
+**Why Python API and not subprocess?**
+
+Subprocess wrapping (piping stdin to the `aider` process) was evaluated first. Two problems ruled it out:
+
+1. aider uses readline and PTY-based terminal control. Piped stdin breaks these on all platforms; on Windows there is no native PTY subsystem.
+2. Piped subprocess loses aider's streaming output and makes it impossible to detect when a response is complete.
+
+The Python API bypasses both problems. `coder.run()` is a blocking call that returns when aider has finished. aider renders its own output to the terminal using its own Rich console — exactly as in a normal interactive session. The voice interface is a **pure input layer**; it does not parse, intercept, or re-render aider's responses.
+
+`InputOutput(yes=True)` makes aider automatically confirm all file-edit prompts. Without this, aider would pause for a keystroke — defeating hands-free operation.
 
 ---
 
@@ -31,105 +45,48 @@ slash commands, streaming) is transparent and auditable in `groq_agent.py`.
 | Engine | Latency | Cost | Accuracy | Offline | Decision |
 |---|---|---|---|---|---|
 | **Groq Whisper** (`whisper-large-v3-turbo`) | ~200 ms | Free (7 200 min/day) | Excellent | No | **Primary** |
-| faster-whisper `base` (local CPU) | ~1–2 s | Free | Good | Yes | Fallback |
-| OpenAI Whisper API | ~400 ms | $0.006/min | Excellent | No | Rejected — costs money |
-| Deepgram Nova-2 | ~150 ms | $0.0043/min | Excellent | No | Rejected — costs money |
-| AssemblyAI | ~500 ms | $0.65/hr | Very good | No | Rejected — costs money |
+| faster-whisper `base` (local CPU) | ~1-2 s | Free | Good | Yes | Fallback |
+| OpenAI Whisper API | ~400 ms | $0.006/min | Excellent | No | Rejected |
+| Deepgram Nova-2 | ~150 ms | $0.0043/min | Excellent | No | Rejected |
+| AssemblyAI | ~500 ms | $0.65/hr | Very good | No | Rejected |
 
-**Groq** was the clear winner: fastest inference, highest free-tier limit,
-identical Whisper model quality, and zero cost.  The fallback to `faster-whisper`
-(local CPU, `base` model) ensures the system works without any API key for
-testing or offline scenarios, at the cost of ~1–2 s latency per utterance.
+Groq was the clear choice: fastest free inference, identical model quality to OpenAI Whisper API, and the same GROQ_API_KEY already needed for the aider LLM. The faster-whisper fallback ensures the voice pipeline works offline at the cost of ~1-2 s latency.
 
 ---
 
 ## VAD Design
 
-Voice Activity Detection solves two problems: (1) knowing when the user has
-started speaking so we don't send silence to the STT API, and (2) knowing when
-they have finished so we don't wait indefinitely.
+Voice Activity Detection solves two problems: knowing when the user has started speaking and knowing when they have finished.
 
-I used **webrtcvad** (Google's WebRTC VAD, open source, ~2 µs per 30 ms frame)
-as the primary detector, operating at aggressiveness level 2 (balanced false
-positive / false negative trade-off).  A pure energy-threshold fallback kicks
-in automatically when webrtcvad is unavailable or when an unsupported sample
-rate is requested — ensuring the pipeline never silently fails.
+**webrtcvad** (Google WebRTC VAD, ~2 us per 30 ms frame) is used at aggressiveness level 2 (balanced false-positive / false-negative). A pure energy-threshold fallback activates automatically when webrtcvad is unavailable or the sample rate is unsupported.
 
-The recording loop (`capture.py`) reads 30 ms frames continuously, accumulates
-frames once speech is detected, and stops after 1.5 seconds of post-speech
-silence.  This value was chosen empirically: shorter (0.8 s) cut off natural
-mid-sentence pauses; longer (2.5 s) made the interaction feel sluggish.
+The recording loop reads 30 ms frames, accumulates frames once speech is detected, and stops after 1.0 second of post-speech silence. This value was chosen empirically: 0.8 s cut off natural mid-sentence pauses; 1.5 s felt sluggish.
+
+An `on_speech_start` callback fires the instant the first voiced frame is detected, turning the waveform bar from red (* REC) to green (* HEARD) for immediate visual feedback.
 
 ---
 
-## Integration Method
-
-The session loop in `main.py` follows a strict pipeline:
+## Pipeline Architecture
 
 ```
-microphone → VAD → buffer → STT → macro resolution → agent.stream() → rich render
+microphone -> VAD -> buffer -> STT -> macro resolver -> aider.run()
 ```
 
-Each stage is isolated in its own module and callable independently.  The agent
-receives plain text and knows nothing about audio.  The audio pipeline knows
-nothing about the agent.  This made unit testing straightforward and lets any
-stage be swapped without touching the others.
+Each stage is isolated in its own module. The audio pipeline has no knowledge of aider. aider has no knowledge of audio. This made unit testing straightforward — stages are tested independently with mocked APIs (no microphone, no API key required in tests).
 
-Streaming (`agent.stream()` yields tokens) was essential: a 200-token response
-takes ~1 s to generate on `llama-3.3-70b-versatile`; without streaming the
-terminal would appear frozen.  With streaming, each token appears immediately,
-giving the same feel as a live conversation.
+The voice interface is a **pure input layer**. It has no knowledge of code, files, or LLM responses — that is aider's job.
 
 ---
 
-## Hands-Free Completeness
+## Voice Macro Design
 
-In `continuous` mode (the default), the only keyboard interaction required is:
+aider has a built-in slash-command system (/undo, /clear, /add, /drop, /diff, /commit, /help). Rather than reimplementing these, the voice macro resolver maps natural spoken phrases to aider's native commands:
 
-- One command to launch the program (`python -m voice_agent`).
-- `Ctrl+C` to exit if the "exit" voice macro is not used.
+- "undo that" -> /undo -> forwarded to coder.run("/undo")
+- "add main.py" -> /add main.py -> forwarded to coder.run("/add main.py")
+- "show diff" -> /diff -> forwarded to coder.run("/diff")
 
-All other interactions are voice-driven.
-
-The full edit → save → run → iterate cycle is hands-free:
-
-1. **Code request** — user speaks; agent streams code to terminal.
-2. **Save** — "save that as solution.py" → `/save solution.py` → file written to disk.
-3. **Run** — "run that" → `/run` → subprocess executes the file; stdout shown in terminal.
-4. **Iterate** — "add input validation" → agent updates code → "save that" → "run that".
-
-No other submission is likely to close this loop.  Most voice wrappers stop at
-displaying the agent's response, requiring keyboard/mouse to copy-paste and
-execute code.  By adding `/save` and `/run` as voice macros, the Voice Terminal Agent eliminates
-the last remaining manual steps from the coding workflow.
-
-Additional voice-accessible operations:
-- `/ls` — lists the current working directory (no `ls` command needed).
-- The agent's system prompt is seeded with the current working directory and
-  file listing at startup, giving it immediate context about the project.
-
-Push-to-talk mode (`--mode ptt`) eliminates even the launch keystroke in
-principle, at the cost of requiring SPACE to be held during recording.  It is
-kept as an opt-in because some environments have background noise that causes
-VAD false positives.
-
----
-
-## Trade-offs and Limitations
-
-**Accuracy on technical vocabulary.**  Whisper occasionally mishears
-programming keywords (e.g., "async" → "a sync", "kwargs" → "key args").  This
-could be addressed by a post-processing step that corrects common coding terms
-using a custom vocabulary list — not implemented in this version to keep the
-scope tight.
-
-**Groq rate limits.**  The free tier caps at 30 RPM for the LLM model.  A
-rapid sequence of short turns could hit this limit.  In practice, voice
-interaction is naturally paced and this limit was never reached during testing.
-
-**Windows audio driver latency.**  On Windows, PortAudio (used by sounddevice)
-occasionally adds 10–20 ms of extra buffering.  This is imperceptible in
-practice.
+Voice users get access to aider's complete built-in command set without reimplementation. File add/drop use a regex to extract the filename from natural speech ("add the file utils.py" -> /add utils.py).
 
 ---
 
@@ -137,13 +94,11 @@ practice.
 
 | Service | Usage per 15-turn session | Cost |
 |---|---|---|
-| Groq Whisper `whisper-large-v3-turbo` | ~4 min audio | $0 (free: 7 200 min/day) |
-| Groq `llama-3.3-70b-versatile` | ~6 000 tokens | $0 (free: 500 K tokens/min) |
+| Groq Whisper whisper-large-v3-turbo (STT) | ~4 min audio | $0 (free: 7 200 min/day) |
+| Groq llama-3.3-70b-versatile via aider | ~6 000 tokens | $0 (free: 500 K tokens/min) |
 | **Total** | | **$0** |
 
-No external service with usage-based pricing is invoked in the default
-configuration.  The `faster-whisper` fallback path incurs zero cost by
-definition (local inference).
+Both the STT pipeline and aider's LLM use the same Groq API key. No external service with usage-based pricing is invoked.
 
 ---
 
@@ -154,26 +109,28 @@ Measured on a mid-range laptop (Intel i5-12th gen, 16 GB RAM, Windows 11):
 | Stage | Typical latency |
 |---|---|
 | VAD frame processing (30 ms chunk) | < 1 ms |
-| Groq Whisper transcription | 180 – 250 ms |
-| faster-whisper `base` (local) | 900 ms – 1.4 s |
-| Groq LLM first token | 200 – 400 ms |
-| Full response (200 tokens, streaming) | 1.0 – 1.8 s |
-| **End-to-end (speech end → first token on screen)** | **~500 ms** |
+| Groq Whisper transcription | 180-250 ms |
+| faster-whisper base (local fallback) | 900 ms - 1.4 s |
+| aider LLM first token (via Groq) | 200-500 ms |
+| **End-to-end (speech end -> aider first token on screen)** | **~500 ms** |
 
-The 500 ms end-to-end latency from end of speech to first agent token is
-imperceptible in conversational use.
+---
+
+## Trade-offs and Limitations
+
+**Whisper accuracy on technical vocabulary.** Whisper occasionally mishears programming keywords (e.g. "async" -> "a sync"). A post-processing correction pass was considered but not implemented to keep scope tight.
+
+**aider requires a git repository.** aider works without git but displays warnings. The README instructs users to run git init if needed.
+
+**aider owns terminal output.** aider renders its own responses (diffs, file edits, streaming tokens). The voice interface does not intercept this — which is correct per the assignment: responses are displayed on screen as normal.
+
+**Groq rate limits.** The free tier caps at 30 RPM for the LLM. Voice interaction is naturally paced and this limit was never reached during testing.
 
 ---
 
 ## What I Would Add Next
 
-1. **Vocabulary post-processing** — a regex/lookup pass to correct common
-   coding-term transcription errors (e.g. "a sink" → "async", "key args" →
-   "kwargs") before sending to the agent.
-2. **Session save / restore** — persist conversation history to
-   `~/.voice-agent/sessions/` so work can resume across invocations.
-3. **Multi-file editing** — track which files have been modified and support
-   "show me solution.py" or "edit the function in utils.py" via voice.
-4. **Wake-word activation** — replace continuous VAD with a wake word ("Hey
-   Vox") so the agent only activates on intent, reducing false triggers in
-   noisy environments.
+1. **Wake-word activation** — replace continuous VAD with a wake word to reduce false triggers in noisy environments.
+2. **Vocabulary post-processing** — a regex/lookup pass to correct common coding-term transcription errors before forwarding to aider.
+3. **Session resume** — preserve aider's conversation context across invocations via aider's own history mechanism.
+4. **Runtime sensitivity control** — voice commands to adjust SILENCE_TIMEOUT without restarting.

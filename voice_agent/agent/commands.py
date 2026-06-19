@@ -1,15 +1,18 @@
-"""Voice macro resolution — maps natural-language phrases to agent slash commands.
+"""Voice macro resolution — maps natural-language phrases to aider slash commands.
 
+aider has its own built-in command system (/undo, /clear, /add, /drop, etc.).
 Standard macros are matched exactly (case-insensitive, trailing punctuation ignored).
-Save-with-filename is matched by regex: "save as main.py", "save that as utils.py".
+File-add and file-drop are matched by regex to extract the filename.
 """
 
 import re
 
 # ── exact macros ──────────────────────────────────────────────────────────────
+# All mapped values are aider native commands — passed directly to coder.run().
+# The sole exception is /exit which is handled by the voice loop itself.
 
 MACROS: dict[str, str] = {
-    # Session control
+    # Session exit (handled before reaching aider)
     "exit": "/exit",
     "quit": "/exit",
     "exit session": "/exit",
@@ -17,67 +20,64 @@ MACROS: dict[str, str] = {
     "goodbye": "/exit",
     "bye": "/exit",
 
-    # History
+    # Undo last aider edit
     "undo": "/undo",
     "undo that": "/undo",
+    "undo last change": "/undo",
     "revert": "/undo",
     "revert that": "/undo",
-    "go back": "/undo",
 
-    # Context
+    # Clear conversation context
     "clear": "/clear",
     "clear history": "/clear",
-    "reset": "/clear",
     "start over": "/clear",
     "new session": "/clear",
+    "reset": "/clear",
 
-    # File management
-    "show files": "/files",
-    "list files": "/files",
-    "what files": "/files",
-    "current files": "/files",
+    # List files in aider's context
+    "list files": "/ls",
+    "show files": "/ls",
+    "what files": "/ls",
+    "files in context": "/ls",
+    "what's in context": "/ls",
 
-    # Directory listing
-    "list directory": "/ls",
-    "show directory": "/ls",
-    "what's here": "/ls",
-    "what is here": "/ls",
+    # Show diff of uncommitted changes
+    "show diff": "/diff",
+    "what changed": "/diff",
+    "show changes": "/diff",
+    "diff": "/diff",
 
-    # Save code to disk (no filename → auto-named)
-    "save": "/save",
-    "save that": "/save",
-    "save the code": "/save",
-    "save to file": "/save",
-    "write to file": "/save",
-    "write that": "/save",
-    "write the code": "/save",
+    # Commit current changes to git
+    "commit": "/commit",
+    "commit changes": "/commit",
+    "save changes": "/commit",
 
-    # Run last saved file
-    "run": "/run",
-    "run that": "/run",
-    "run the code": "/run",
-    "execute": "/run",
-    "execute that": "/run",
-    "run the file": "/run",
+    # Run a shell command (passed through to aider's /run handler)
+    "run tests": "/run pytest",
+    "run the tests": "/run pytest",
 
     # Help
     "help": "/help",
-    "commands": "/help",
-    "what can you do": "/help",
     "show commands": "/help",
-    "show macros": "/help",
-
-    # History review
-    "show history": "/history",
-    "conversation history": "/history",
-    "history": "/history",
+    "what can you do": "/help",
+    "show help": "/help",
 }
 
-# ── save-with-filename regex ──────────────────────────────────────────────────
-# Matches: "save as main.py", "save that as utils.py", "save to solution.py"
+# ── file add/drop regex ───────────────────────────────────────────────────────
+# "add main.py"           → /add main.py
+# "add the file utils.py" → /add utils.py
+# "add file src/main.py"  → /add src/main.py
 
-_SAVE_AS = re.compile(
-    r"^save(?:\s+that)?\s+(?:as|to)\s+([\w\-]+(?:\.\w+)?)[.!?]?\s*$",
+_ADD_FILE = re.compile(
+    r"^add(?:\s+(?:the\s+)?file)?\s+([\w\-./\\]+\.\w+)[.!?]?\s*$",
+    re.IGNORECASE,
+)
+
+# "drop main.py"            → /drop main.py
+# "remove the file utils.py" → /drop utils.py
+
+_DROP_FILE = re.compile(
+    r"^(?:drop|remove)(?:\s+(?:the\s+)?file)?\s+([\w\-./\\]+\.\w+)[.!?]?\s*$",
     re.IGNORECASE,
 )
 
@@ -93,23 +93,24 @@ _PATTERN = re.compile(
 
 
 def resolve(text: str) -> str:
-    """Return the slash command if text is a known macro, otherwise return text unchanged.
+    """Return the aider slash command if text is a known macro, else text unchanged.
 
     Handles:
+      - "add main.py"  → /add main.py   (aider adds file to context)
+      - "drop main.py" → /drop main.py  (aider removes file from context)
       - Exact macros (case-insensitive, trailing punctuation stripped)
-      - "save as <filename>" with optional extension inference
+      - Everything else passes through unchanged to aider as a coding request
     """
     stripped = text.strip()
 
-    # 1. Save-with-filename: "save as main.py" → /save main.py
-    m = _SAVE_AS.match(stripped)
+    m = _ADD_FILE.match(stripped)
     if m:
-        fname = m.group(1)
-        if "." not in fname:
-            fname += ".py"   # default to .py if no extension given
-        return f"/save {fname}"
+        return f"/add {m.group(1)}"
 
-    # 2. Standard exact macro
+    m = _DROP_FILE.match(stripped)
+    if m:
+        return f"/drop {m.group(1)}"
+
     m = _PATTERN.match(stripped)
     if m:
         return MACROS[m.group(1).lower().strip()]
@@ -122,15 +123,17 @@ def is_exit(text: str) -> bool:
 
 
 def describe_macros() -> str:
-    """Return a human-readable list of available voice macros for the help panel."""
+    """Return a human-readable list of voice macros for the help panel."""
     seen: dict[str, list[str]] = {}
     for phrase, cmd in MACROS.items():
         seen.setdefault(cmd, []).append(f'"{phrase}"')
 
     lines = []
-    order = ["/exit", "/undo", "/clear", "/save", "/run", "/ls", "/files", "/history", "/help"]
+    order = ["/exit", "/undo", "/clear", "/ls", "/diff", "/commit", "/help"]
     for cmd in order:
         if cmd in seen:
-            phrases = seen[cmd][:3]
-            lines.append(f"  {cmd:20s} -> {', '.join(phrases)}")
+            phrases = seen[cmd][:2]
+            lines.append(f"  {cmd:22s} -> {', '.join(phrases)}")
+    lines.append('  /add <file>            -> "add main.py", "add file utils.py"')
+    lines.append('  /drop <file>           -> "drop main.py", "remove utils.py"')
     return "\n".join(lines)

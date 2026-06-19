@@ -11,7 +11,7 @@ load_dotenv()
 class Config:
     groq_api_key: str
     stt_backend: str        # "groq" | "local"
-    agent_model: str
+    aider_model: str        # e.g. "groq/llama-3.3-70b-versatile"
     record_mode: str        # "continuous" | "ptt"
     vad_aggressiveness: int
     silence_timeout: float
@@ -58,7 +58,7 @@ def load_config() -> Config:
     return Config(
         groq_api_key=key,
         stt_backend=stt_backend,
-        agent_model=os.getenv("AGENT_MODEL", "llama-3.3-70b-versatile"),
+        aider_model=os.getenv("AIDER_MODEL", "groq/llama-3.3-70b-versatile"),
         record_mode=record_mode,
         vad_aggressiveness=vad_aggressiveness,
         silence_timeout=float(os.getenv("SILENCE_TIMEOUT", "1.0")),

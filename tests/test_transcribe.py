@@ -57,52 +57,64 @@ class TestCommandResolution:
         assert resolve("EXIT") == "/exit"
         assert resolve("UNDO THAT") == "/undo"
 
-    # ── new command macros ────────────────────────────────────────────────────
+    # ── aider native command macros ───────────────────────────────────────────
 
-    def test_save_macros(self):
+    def test_undo_variations(self):
         from voice_agent.agent.commands import resolve
-        assert resolve("save") == "/save"
-        assert resolve("save that") == "/save"
-        assert resolve("save the code") == "/save"
-        assert resolve("write to file") == "/save"
+        assert resolve("undo") == "/undo"
+        assert resolve("revert") == "/undo"
+        assert resolve("undo last change") == "/undo"
 
-    def test_run_macros(self):
+    def test_clear_macros(self):
         from voice_agent.agent.commands import resolve
-        assert resolve("run") == "/run"
-        assert resolve("run that") == "/run"
-        assert resolve("run the code") == "/run"
-        assert resolve("execute that") == "/run"
+        assert resolve("clear") == "/clear"
+        assert resolve("clear history") == "/clear"
+        assert resolve("start over") == "/clear"
 
     def test_ls_macros(self):
         from voice_agent.agent.commands import resolve
-        assert resolve("list directory") == "/ls"
-        assert resolve("show directory") == "/ls"
-        assert resolve("what's here") == "/ls"
+        assert resolve("list files") == "/ls"
+        assert resolve("show files") == "/ls"
+        assert resolve("what files") == "/ls"
 
-    # ── save-with-filename regex ──────────────────────────────────────────────
-
-    def test_save_as_with_extension(self):
+    def test_diff_macros(self):
         from voice_agent.agent.commands import resolve
-        assert resolve("save as main.py") == "/save main.py"
-        assert resolve("save that as utils.py") == "/save utils.py"
-        assert resolve("save to solution.py") == "/save solution.py"
+        assert resolve("show diff") == "/diff"
+        assert resolve("what changed") == "/diff"
+        assert resolve("diff") == "/diff"
 
-    def test_save_as_infers_py_extension(self):
+    def test_commit_macros(self):
         from voice_agent.agent.commands import resolve
-        assert resolve("save as main") == "/save main.py"
-        assert resolve("save that as solution") == "/save solution.py"
+        assert resolve("commit") == "/commit"
+        assert resolve("commit changes") == "/commit"
+        assert resolve("save changes") == "/commit"
 
-    def test_save_as_strips_trailing_punctuation(self):
-        from voice_agent.agent.commands import resolve
-        assert resolve("save as main.py.") == "/save main.py"
-        assert resolve("save that as utils.py!") == "/save utils.py"
-        assert resolve("save as solution.py?") == "/save solution.py"
+    # ── file add/drop regex ───────────────────────────────────────────────────
 
-    def test_save_as_case_insensitive(self):
+    def test_add_file_simple(self):
         from voice_agent.agent.commands import resolve
-        assert resolve("Save That As Main.py") == "/save Main.py"
-        assert resolve("SAVE AS UTILS.PY") == "/save UTILS.PY"
+        assert resolve("add main.py") == "/add main.py"
+        assert resolve("add utils.py") == "/add utils.py"
 
-    def test_save_as_hyphenated_name(self):
+    def test_add_file_with_keyword(self):
         from voice_agent.agent.commands import resolve
-        assert resolve("save as my-script.py") == "/save my-script.py"
+        assert resolve("add file main.py") == "/add main.py"
+        assert resolve("add the file utils.py") == "/add utils.py"
+
+    def test_drop_file(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("drop main.py") == "/drop main.py"
+        assert resolve("remove utils.py") == "/drop utils.py"
+        assert resolve("remove the file main.py") == "/drop main.py"
+
+    def test_add_file_with_path(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("add src/main.py") == "/add src/main.py"
+
+    # ── trailing punctuation ─────────────────────────────────────────────────
+
+    def test_trailing_punctuation_stripped(self):
+        from voice_agent.agent.commands import resolve
+        assert resolve("undo.") == "/undo"
+        assert resolve("clear!") == "/clear"
+        assert resolve("commit?") == "/commit"
