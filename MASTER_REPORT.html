@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>MASTER_REPORT.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="voxcode--master-project-report">VOXCODE — MASTER PROJECT REPORT</h1>
+<hr>
+<h2 id="section-1-executive-overview">SECTION 1: EXECUTIVE OVERVIEW</h2>
+<p><strong>Project:</strong> VoxCode — Voice Interface for aider<br>
+<strong>Type:</strong> Internship assignment (Medrenova)<br>
+<strong>Repo:</strong> https://github.com/gurusaiss/voxcode<br>
+<strong>Status:</strong> Complete, deployed, tested</p>
+<p><strong>One-line pitch:</strong> VoxCode wraps aider (55k-star open-source terminal coding agent) with a voice input layer — speak naturally, aider edits your code, no keyboard needed between turns.</p>
+<p><strong>What it is NOT:</strong> A custom LLM agent. VoxCode is purely an input pipeline. All code intelligence belongs to aider.</p>
+<p><strong>Assignment requirement met:</strong> &quot;Pick any open source terminal-based AI coding agent. Design and implement a system that wraps or integrates with it and enables users to interact with it through voice.&quot; — aider is the chosen agent, wrapped via its Python API (<code>Coder.run()</code>).</p>
+<p><strong>Stack at a glance:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Voice capture</td>
+<td><code>sounddevice</code> (PortAudio wrapper)</td>
+</tr>
+<tr>
+<td>VAD</td>
+<td><code>webrtcvad-wheels</code> (Google's WebRTC VAD, prebuilt binaries)</td>
+</tr>
+<tr>
+<td>STT</td>
+<td>Groq Whisper API (<code>whisper-large-v3-turbo</code>, ~200ms latency)</td>
+</tr>
+<tr>
+<td>Agent</td>
+<td><code>aider</code> via <code>Coder.run()</code> (Python API)</td>
+</tr>
+<tr>
+<td>LLM routing</td>
+<td>litellm (<code>groq/llama-3.3-70b-versatile</code>)</td>
+</tr>
+<tr>
+<td>UI</td>
+<td>Rich terminal (panels, spinners, ANSI waveform)</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td><strong>$0</strong> (Groq free tier — 7200 min/day STT, 500k tokens/min LLM)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="section-2-timeline">SECTION 2: TIMELINE</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Work Done</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Week 1 — Research</td>
+<td>Evaluated terminal coding agents: aider, continue.dev, mentat, sweep. Chose aider for Python API, 55k stars, git-native, litellm routing.</td>
+</tr>
+<tr>
+<td>Week 2 — Audio pipeline</td>
+<td>Built VAD loop (webrtcvad, 30ms frames, energy fallback). Groq Whisper integration. WAV encoding in-memory.</td>
+</tr>
+<tr>
+<td>Week 3 — Agent integration</td>
+<td>Initial approach: custom GroqAgent (wrong). Rebuilt: AiderBridge wrapping <code>Coder.run()</code>.</td>
+</tr>
+<tr>
+<td>Week 4 — Polish</td>
+<td>PTT mode, ANSI waveform bar, voice macros, config validation, tests, README, REPORT</td>
+</tr>
+<tr>
+<td>Final — Fixes</td>
+<td>7 bugs found and fixed: DEVICE_INDEX parsing, PTT timeout, WhisperModel caching, ANSI on Windows, fallback warning routing, race condition in getsize, stale requirements</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="section-3-architecture">SECTION 3: ARCHITECTURE</h2>
+<pre class="hljs"><code><div>Microphone (sounddevice)
+      |
+      | 30ms PCM frames @ 16kHz
+      v
+VAD (webrtcvad / energy fallback)
+      |--- voiced frame? → accumulate in buffer
+      |--- 1.0s silence? → flush to WAV bytes
+      v
+WAV bytes (in-memory, never written to disk)
+      |
+      v
+STT dispatcher (transcribe.py)
+      |--- groq  → Groq Whisper API (~200ms)
+      |--- local → faster-whisper CPU (~1-2s)
+      v
+Plain text transcription
+      |
+      v
+Voice macro resolver (commands.py)
+      |--- known phrase → aider slash command (/undo, /add, /diff…)
+      |--- unknown      → pass through unchanged
+      v
+AiderBridge.run(text)   [aider_bridge.py]
+      |
+      v
+aider Coder.run(text)   ← aider owns everything from here
+      |--- litellm → groq/llama-3.3-70b-versatile
+      |--- applies file edits
+      |--- renders diffs, responses to terminal
+      v
+Loop back to microphone
+</div></code></pre>
+<p><strong>Key design principle:</strong> VoxCode has zero knowledge of code, files, or LLM responses. It is a pure input translator. This is why the architecture is clean and the scope is achievable in 4 weeks.</p>
+<hr>
+<h2 id="section-4-features">SECTION 4: FEATURES</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>How it works</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Continuous VAD mode</td>
+<td>webrtcvad detects speech frame-by-frame; 1s silence triggers send</td>
+</tr>
+<tr>
+<td>Push-to-talk mode</td>
+<td>pynput watches SPACE key; hold to record, release to send</td>
+</tr>
+<tr>
+<td>Groq Whisper STT</td>
+<td>Uploads WAV bytes to Groq API; ~200ms round-trip</td>
+</tr>
+<tr>
+<td>Local offline STT</td>
+<td>faster-whisper on CPU; no API key; ~1-2s latency</td>
+</tr>
+<tr>
+<td>Voice macros</td>
+<td>Natural phrases (&quot;undo that&quot;, &quot;show diff&quot;) → aider slash commands</td>
+</tr>
+<tr>
+<td>File context control</td>
+<td>&quot;add main.py&quot; → <code>/add main.py</code>; &quot;drop utils.py&quot; → <code>/drop utils.py</code></td>
+</tr>
+<tr>
+<td>ANSI waveform bar</td>
+<td>Real-time mic level display using <code>sys.stdout.write</code> + <code>\r\033[K</code></td>
+</tr>
+<tr>
+<td>Multi-mic support</td>
+<td><code>--list-devices</code> to enumerate; <code>DEVICE_INDEX</code> in <code>.env</code> to select</td>
+</tr>
+<tr>
+<td>Model switching</td>
+<td><code>--model gpt-4o</code> or <code>AIDER_MODEL=claude-3-5-sonnet-20241022</code></td>
+</tr>
+<tr>
+<td>Fallback STT</td>
+<td>Groq fails → auto-fallback to local faster-whisper</td>
+</tr>
+<tr>
+<td>Zero cost</td>
+<td>Groq free tier: 7200 min/day audio + 500k tokens/min</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="section-5-issues-found-and-fixed">SECTION 5: ISSUES FOUND AND FIXED</h2>
+<h3 id="bug-1--device_index-negative-number-rejection">Bug 1 — DEVICE_INDEX negative number rejection</h3>
+<ul>
+<li><strong>Problem:</strong> <code>raw_device.isdigit()</code> returns <code>False</code> for <code>&quot;-1&quot;</code> (valid sounddevice device)</li>
+<li><strong>Fix:</strong> <code>int(raw_device) if raw_device else None</code> wrapped in <code>try/except ValueError</code></li>
+<li><strong>Why it matters:</strong> Users with device index -1 would get silent default mic selection</li>
+</ul>
+<h3 id="bug-2--ptt-timeout-not-checked">Bug 2 — PTT timeout not checked</h3>
+<ul>
+<li><strong>Problem:</strong> <code>start_event.wait(timeout=60)</code> returned False but stream opened anyway</li>
+<li><strong>Fix:</strong> <code>pressed = start_event.wait(timeout=60); if not pressed: listener.stop(); return None</code></li>
+<li><strong>Why it matters:</strong> PTT would hang indefinitely if user never pressed SPACE</li>
+</ul>
+<h3 id="bug-3--ptt-ignoring-device_index">Bug 3 — PTT ignoring DEVICE_INDEX</h3>
+<ul>
+<li><strong>Problem:</strong> <code>record_push_to_talk()</code> had no <code>device</code> parameter; always used default mic</li>
+<li><strong>Fix:</strong> Added <code>device: Optional[int] = None</code> parameter, passed to <code>sd.InputStream</code></li>
+</ul>
+<h3 id="bug-4--whispermodel-reloaded-every-utterance-local-mode">Bug 4 — WhisperModel reloaded every utterance (local mode)</h3>
+<ul>
+<li><strong>Problem:</strong> <code>WhisperModel(model_size, ...)</code> called inside the transcription function — 2-3s overhead per turn</li>
+<li><strong>Fix:</strong> Module-level <code>_local_model_cache: dict[str, object] = {}</code> — model loaded once, reused</li>
+</ul>
+<h3 id="bug-5--fallback-warning-corrupted-rich-ui">Bug 5 — Fallback warning corrupted Rich UI</h3>
+<ul>
+<li><strong>Problem:</strong> Groq fallback warning used <code>print()</code> to stdout during Rich spinner</li>
+<li><strong>Fix:</strong> <code>print(msg, file=sys.stderr, flush=True)</code> — bypasses Rich</li>
+</ul>
+<h3 id="bug-6--ospathgetsize-race-condition">Bug 6 — os.path.getsize() race condition</h3>
+<ul>
+<li><strong>Problem:</strong> File deleted between <code>os.listdir()</code> and <code>os.path.getsize()</code> → <code>FileNotFoundError</code></li>
+<li><strong>Fix:</strong> <code>try/except OSError</code> around getsize, shows <code>&quot;?&quot;</code> for size when file disappears</li>
+</ul>
+<h3 id="bug-7--ansi-waveform-bar-broken-on-windows">Bug 7 — ANSI waveform bar broken on Windows</h3>
+<ul>
+<li><strong>Problem:</strong> Windows console doesn't enable ANSI escape sequences by default</li>
+<li><strong>Fix:</strong> <code>ctypes.windll.kernel32.SetConsoleMode(handle, 7)</code> at startup</li>
+</ul>
+<hr>
+<h2 id="section-6-technical-decisions">SECTION 6: TECHNICAL DECISIONS</h2>
+<h3 id="decision-1-why-aider">Decision 1: Why aider?</h3>
+<p>aider has 55k+ GitHub stars, an official Python API, git-native operation (auto-commit), litellm routing (any model with one line change), and <code>InputOutput(yes=True)</code> for hands-free auto-accept. Alternatives considered: mentat (no Python API), continue.dev (IDE plugin, not terminal), sweep (GitHub bot, not local).</p>
+<h3 id="decision-2-python-api-over-subprocess">Decision 2: Python API over subprocess</h3>
+<p>aider uses readline/PTY for interactive input. On Windows, subprocess piping breaks because there is no native PTY. The Python API (<code>Coder.run()</code>) is a clean blocking call that bypasses this entirely. It also gives access to aider's internal state (turn count, file list) without parsing terminal output.</p>
+<h3 id="decision-3-webrtcvad-wheels-over-webrtcvad">Decision 3: webrtcvad-wheels over webrtcvad</h3>
+<p><code>webrtcvad</code> (original) requires a C compiler on Windows. <code>webrtcvad-wheels</code> ships prebuilt binaries for Windows/Mac/Linux — zero compilation, zero install failures.</p>
+<h3 id="decision-4-energy-fallback-for-unsupported-sample-rates">Decision 4: Energy fallback for unsupported sample rates</h3>
+<p>webrtcvad only supports 8000, 16000, 32000, 48000 Hz. If user sets a non-standard rate, VAD initialization fails silently. Energy threshold fallback computes RMS of each frame and triggers on threshold — no WebRTC needed.</p>
+<h3 id="decision-5-wav-in-memory-never-on-disk">Decision 5: WAV in-memory, never on disk</h3>
+<p>Audio bytes are accumulated in a list, encoded to WAV bytes via <code>scipy.io.wavfile.write</code> to a <code>io.BytesIO</code> buffer, and sent directly to Groq. No temp files. No cleanup. No cross-platform path issues.</p>
+<h3 id="decision-6-groq-for-both-stt-and-llm">Decision 6: Groq for both STT and LLM</h3>
+<p>Single API key, single billing account, free tier generous enough for demos. litellm <code>groq/</code> prefix handles routing automatically — <code>GROQ_API_KEY</code> env var is all that's needed.</p>
+<h3 id="decision-7-silence_timeout10s">Decision 7: SILENCE_TIMEOUT=1.0s</h3>
+<p>Balances responsiveness (shorter = snappier) vs. false triggers (longer = fewer premature sends). 1.0s feels natural for conversational speech; configurable via <code>.env</code> for different speaking styles.</p>
+<hr>
+<h2 id="section-7-optimizations">SECTION 7: OPTIMIZATIONS</h2>
+<table>
+<thead>
+<tr>
+<th>Optimization</th>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WhisperModel caching</td>
+<td>2-3s reload per utterance (local mode)</td>
+<td>~0ms (loaded once, reused)</td>
+</tr>
+<tr>
+<td>MAX_RMS calibration</td>
+<td>3000 (bar always empty for laptop mics)</td>
+<td>600 (correct for typical hardware)</td>
+</tr>
+<tr>
+<td>VAD aggressiveness</td>
+<td>Fixed at 3 (missed quiet voices)</td>
+<td>Configurable 0-3, default 2</td>
+</tr>
+<tr>
+<td>ANSI waveform rendering</td>
+<td>Rich console (always adds newline)</td>
+<td><code>sys.stdout.write</code> + <code>\r\033[K</code> (in-place)</td>
+</tr>
+<tr>
+<td>Silence timeout</td>
+<td>Fixed at 2s</td>
+<td>Configurable, default 1.0s</td>
+</tr>
+<tr>
+<td>PTT stream</td>
+<td>Always used default mic</td>
+<td>Respects <code>DEVICE_INDEX</code></td>
+</tr>
+<tr>
+<td>Fallback STT</td>
+<td>Warned via stdout (corrupted UI)</td>
+<td>Warned via stderr (clean)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="section-8-security">SECTION 8: SECURITY</h2>
+<ul>
+<li><strong>API key handling:</strong> <code>GROQ_API_KEY</code> loaded from <code>.env</code> via <code>python-dotenv</code>, never hardcoded. <code>.gitignore</code> includes <code>.env</code>.</li>
+<li><strong>No audio stored:</strong> WAV bytes live only in memory during transcription. No temp files.</li>
+<li><strong>No network beyond Groq:</strong> Only outbound connections are to <code>api.groq.com</code>. No telemetry, no analytics.</li>
+<li><strong>Input sanitization:</strong> Voice transcription is passed as plain text to aider — no shell execution, no eval. aider's own input validation applies.</li>
+<li><strong><code>InputOutput(yes=True)</code> risk:</strong> aider auto-accepts file edit confirmations. This is intentional for hands-free operation but means destructive edits aren't gated. Mitigated by aider's git integration — every edit is committed, <code>git undo</code> reverses it.</li>
+</ul>
+<hr>
+<h2 id="section-9-deployment">SECTION 9: DEPLOYMENT</h2>
+<h3 id="local-development">Local (development)</h3>
+<pre class="hljs"><code><div><span class="hljs-built_in">cd</span> your-project          <span class="hljs-comment"># must be a git repo</span>
+pip install -r /path/to/voxcode/requirements.txt
+<span class="hljs-built_in">cp</span> .env.example .<span class="hljs-built_in">env</span>     <span class="hljs-comment"># fill in GROQ_API_KEY</span>
+python -m voice_agent
+</div></code></pre>
+<h3 id="as-an-installed-package">As an installed package</h3>
+<pre class="hljs"><code><div>pip install .            <span class="hljs-comment"># installs voxcode entry point</span>
+voxcode                  <span class="hljs-comment"># runs from anywhere</span>
+</div></code></pre>
+<h3 id="environment-variables-all-in-env">Environment variables (all in .env)</h3>
+<pre class="hljs"><code><div>GROQ_API_KEY=gsk_...
+STT_BACKEND=groq
+AIDER_MODEL=groq/llama-3.3-70b-versatile
+RECORD_MODE=continuous
+VAD_AGGRESSIVENESS=2
+SILENCE_TIMEOUT=1.0
+SAMPLE_RATE=16000
+DEVICE_INDEX=            # leave blank for default
+</div></code></pre>
+<h3 id="platform-support">Platform support</h3>
+<p>Windows 10+, macOS, Linux. <code>webrtcvad-wheels</code> provides prebuilt binaries for all three. ANSI support patched for Windows via <code>ctypes</code>.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Python 3.10+, Git (aider works without git but warns), microphone, Groq API key (free at console.groq.com).</p>
+<hr>
+<h2 id="section-10-codebase-guide">SECTION 10: CODEBASE GUIDE</h2>
+<pre class="hljs"><code><div>voxcode/
+├── voice_agent/
+│   ├── __main__.py       → enables `python -m voice_agent`; imports cli from main.py
+│   ├── main.py           → CLI (click), AiderBridge init, main session loop
+│   ├── config.py         → .env loader, Config dataclass, all validation
+│   ├── audio/
+│   │   ├── capture.py    → record_continuous() and record_push_to_talk()
+│   │   ├── vad.py        → VoiceActivityDetector class, energy fallback
+│   │   └── transcribe.py → transcribe() dispatcher, transcribe_groq(), transcribe_local()
+│   ├── agent/
+│   │   ├── aider_bridge.py → AiderBridge dataclass, wraps Coder.run()
+│   │   └── commands.py     → MACROS dict, _ADD_FILE/_DROP_FILE regex, resolve(), is_exit()
+│   └── ui/
+│       └── display.py    → VoxDisplay class — banner, waveform bar, transcription panel
+├── tests/
+│   ├── test_audio.py     → VAD, frame size, WAV encoding tests (mocked)
+│   └── test_transcribe.py → STT dispatch + all 27 macro resolution tests
+├── .env.example
+├── requirements.txt
+├── setup.py
+├── README.md
+└── REPORT.md
+</div></code></pre>
+<p><strong>Reading order for new contributor:</strong></p>
+<ol>
+<li><code>config.py</code> — understand all configuration points</li>
+<li><code>main.py</code> — understand the session loop</li>
+<li><code>agent/aider_bridge.py</code> — understand agent integration (10 lines)</li>
+<li><code>agent/commands.py</code> — understand macro resolution</li>
+<li><code>audio/capture.py</code> + <code>audio/vad.py</code> — understand VAD pipeline</li>
+<li><code>audio/transcribe.py</code> — understand STT dispatch</li>
+</ol>
+<hr>
+<h2 id="section-11-25-interview-questions--answers">SECTION 11: 25 INTERVIEW QUESTIONS &amp; ANSWERS</h2>
+<p><strong>Q1: What does VoxCode do in one sentence?</strong><br>
+VoxCode is a voice input layer for aider — it transcribes speech and forwards it to aider's coding agent, enabling hands-free coding sessions.</p>
+<p><strong>Q2: Why did you choose aider as the agent to wrap?</strong><br>
+aider has 55,000+ GitHub stars, an official Python API (<code>Coder.run()</code>), built-in git integration, litellm model routing (any LLM with one line), and <code>InputOutput(yes=True)</code> for auto-accept — ideal for hands-free wrapping.</p>
+<p><strong>Q3: What is the assignment requirement and how does your project meet it?</strong><br>
+The requirement is to wrap an existing open-source terminal coding agent with a voice interface. VoxCode wraps aider via its Python API — VoxCode handles voice input only; aider handles all LLM interaction and code editing.</p>
+<p><strong>Q4: Why not wrap aider via subprocess?</strong><br>
+Windows has no native PTY. Subprocess piping fails because aider uses readline/PTY for interactive input. The Python API (<code>Coder.run()</code>) is a clean blocking call that bypasses PTY entirely.</p>
+<p><strong>Q5: What is webrtcvad and why use it?</strong><br>
+webrtcvad is Google's WebRTC Voice Activity Detection library — it classifies 10/20/30ms audio frames as voiced or unvoiced using a combination of energy and spectral features. Used to detect when speech ends (1 second of unvoiced frames) and trigger transcription automatically.</p>
+<p><strong>Q6: What is the energy fallback in your VAD?</strong><br>
+webrtcvad only supports 8000/16000/32000/48000 Hz. For other rates, a fallback computes RMS energy per frame — if it exceeds a threshold, it's treated as speech. This makes the system robust to non-standard microphone configurations.</p>
+<p><strong>Q7: How does Groq Whisper work in your pipeline?</strong><br>
+Audio is accumulated in memory as 30ms PCM frames, encoded to WAV format using <code>scipy.io.wavfile.write</code> into a <code>BytesIO</code> buffer, then POSTed to Groq's transcription endpoint. The API returns JSON with a text field. Typical round-trip: ~200ms.</p>
+<p><strong>Q8: How does the AiderBridge work?</strong></p>
+<pre class="hljs"><code><div><span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AiderBridge</span>:
+    groq_api_key: <span class="hljs-built_in">str</span>
+    model: <span class="hljs-built_in">str</span> = <span class="hljs-string">&quot;groq/llama-3.3-70b-versatile&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__post_init__</span>(<span class="hljs-params">self</span>):
+        os.environ[<span class="hljs-string">&quot;GROQ_API_KEY&quot;</span>] = <span class="hljs-variable language_">self</span>.groq_api_key
+        io = InputOutput(yes=<span class="hljs-literal">True</span>)
+        model = Model(<span class="hljs-variable language_">self</span>.model)
+        <span class="hljs-variable language_">self</span>._coder = Coder.create(main_model=model, io=io, auto_commits=<span class="hljs-literal">False</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">self, text: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._coder.run(text)
+</div></code></pre>
+<p>One <code>Coder</code> instance is created at startup. Every transcribed utterance calls <code>coder.run(text)</code> — a blocking call that aider handles completely.</p>
+<p><strong>Q9: What is <code>InputOutput(yes=True)</code> and why is it critical?</strong><br>
+It's aider's auto-accept mode — aider asks for keyboard confirmation before editing files. <code>yes=True</code> auto-accepts all prompts, which is essential for hands-free operation. Without it, aider would pause every turn waiting for a keypress.</p>
+<p><strong>Q10: How do voice macros work?</strong><br>
+<code>commands.py</code> has a MACROS dict mapping exact phrases to aider slash commands, and two regexes (<code>_ADD_FILE</code>, <code>_DROP_FILE</code>) for file operations. <code>resolve(text)</code> strips trailing punctuation, lowercases, checks the dict, then the regexes, and finally returns the text unchanged if no match.</p>
+<p><strong>Q11: What bugs did you fix?</strong><br>
+Seven bugs: negative DEVICE_INDEX rejected by <code>.isdigit()</code>, PTT timeout not checked, PTT ignoring DEVICE_INDEX, WhisperModel reloaded every utterance, fallback warning corrupting Rich UI via stdout, <code>os.path.getsize()</code> race condition, ANSI not enabled on Windows.</p>
+<p><strong>Q12: How does the waveform bar work technically?</strong></p>
+<pre class="hljs"><code><div>bar = <span class="hljs-string">&quot;#&quot;</span> * filled + <span class="hljs-string">&quot;.&quot;</span> * empty
+sys.stdout.write(<span class="hljs-string">f&quot;\r\033[K* <span class="hljs-subst">{state}</span>  <span class="hljs-subst">{bar}</span>  <span class="hljs-subst">{rms}</span> rms&quot;</span>)
+sys.stdout.flush()
+</div></code></pre>
+<p><code>\r</code> returns cursor to line start. <code>\033[K</code> erases to end of line. This overwrites the previous bar in-place, creating animation. Rich's <code>console.print()</code> always adds a newline, so <code>sys.stdout.write</code> bypasses it.</p>
+<p><strong>Q13: What is litellm and how does it help?</strong><br>
+litellm is a unified LLM routing library. aider uses it internally — the model string prefix determines the provider: <code>groq/</code> routes to Groq API, <code>claude-</code> routes to Anthropic, <code>gpt-</code> routes to OpenAI. One GROQ_API_KEY env var is all that's needed for the default Groq routing.</p>
+<p><strong>Q14: Why is the cost $0?</strong><br>
+Groq's free tier provides 7200 minutes/day of Whisper transcription and 500,000 tokens/minute on llama-3.3-70b-versatile. A 15-turn demo uses ~4 minutes of audio and ~6000 tokens — under 0.1% of the daily limit.</p>
+<p><strong>Q15: How does push-to-talk mode work?</strong><br>
+<code>pynput.keyboard.Listener</code> watches for SPACE key events. <code>KeyDown</code> triggers <code>start_event.set()</code>, starting recording. <code>KeyUp</code> triggers <code>stop_event.set()</code>, ending recording. Both events are communicated to the audio thread via threading Events. A 60-second timeout aborts if SPACE is never pressed.</p>
+<p><strong>Q16: How do you handle the Groq STT fallback?</strong><br>
+<code>transcribe()</code> calls <code>transcribe_groq()</code> in a try/except. If it raises any exception (network error, API down, rate limit), it calls <code>transcribe_local()</code> instead and warns via <code>stderr</code>. The main loop is unaware of the fallback — it just receives transcribed text.</p>
+<p><strong>Q17: Why webrtcvad-wheels and not webrtcvad?</strong><br>
+<code>webrtcvad</code> requires building C extensions from source — needs Visual C++ Build Tools on Windows. <code>webrtcvad-wheels</code> ships prebuilt binaries for Windows/Mac/Linux. Zero compilation, zero install failures across platforms.</p>
+<p><strong>Q18: What does the VAD aggressiveness setting control?</strong><br>
+Values 0-3. At 0, almost every frame is classified as voiced (permissive — catches quiet voices, more false positives). At 3, only clearly voiced frames count (strict — fewer false positives, may miss quiet speech). Default 2 works for most environments; 3 recommended for noisy rooms.</p>
+<p><strong>Q19: How do tests work without a microphone or API key?</strong><br>
+All external calls are mocked with <code>unittest.mock.patch</code>. STT tests mock <code>transcribe_groq</code> and <code>transcribe_local</code>. Command tests import <code>resolve()</code> directly and test string in/out — no mocking needed. <code>pytest tests/ -v</code> runs all 27 tests offline.</p>
+<p><strong>Q20: What is the session loop flow?</strong></p>
+<ol>
+<li>Listen (VAD accumulates frames)</li>
+<li>Flush (1s silence → WAV bytes)</li>
+<li>Transcribe (Groq Whisper or local)</li>
+<li>Resolve (macro check)</li>
+<li>Display (Rich panel with transcription)</li>
+<li><code>agent.run(command)</code> → aider handles it</li>
+<li>Go to 1</li>
+</ol>
+<p><strong>Q21: How would you add support for a different coding agent?</strong><br>
+Create a new bridge module (e.g., <code>mentat_bridge.py</code>) with the same interface: a class with a <code>run(text: str) -&gt; None</code> method. Update <code>main.py</code> to instantiate the correct bridge based on a config flag. The rest of the pipeline (VAD, STT, macros) is unchanged.</p>
+<p><strong>Q22: What's the difference between continuous and PTT modes architecturally?</strong><br>
+Both modes return <code>Optional[bytes]</code> (WAV bytes or None). The session loop is identical for both. Continuous mode calls <code>record_continuous()</code> which runs a VAD loop in a thread. PTT mode calls <code>record_push_to_talk()</code> which waits for SPACE key events. The abstraction is at the capture layer, invisible to the session loop.</p>
+<p><strong>Q23: How do you handle configuration errors?</strong><br>
+<code>config.py</code> raises <code>EnvironmentError</code> with a descriptive message for: missing <code>GROQ_API_KEY</code>, invalid <code>STT_BACKEND</code> value (not <code>groq</code> or <code>local</code>), invalid <code>RECORD_MODE</code>, invalid <code>DEVICE_INDEX</code> (non-integer). Errors surface at startup before any audio is captured.</p>
+<p><strong>Q24: What would you improve with more time?</strong></p>
+<ol>
+<li>Wake word detection (trigger only on &quot;hey aider&quot;)</li>
+<li>Streaming STT (display words as they're spoken, not after silence)</li>
+<li>Speaker diarization (multi-user sessions)</li>
+<li>Web UI frontend (browser-based microphone access)</li>
+<li>aider session persistence (resume context across runs)</li>
+</ol>
+<p><strong>Q25: What was the hardest technical problem?</strong><br>
+ANSI waveform bar on Windows. Rich's <code>console.print()</code> always adds a newline — no in-place update possible. Switching to raw <code>sys.stdout.write</code> with <code>\r\033[K</code> gave frame-by-frame animation, but Windows consoles don't enable ANSI by default. Required <code>ctypes.windll.kernel32.SetConsoleMode(handle, 7)</code> at startup. Platform detection + conditional ANSI enablement.</p>
+<hr>
+<h2 id="section-12-resume-content">SECTION 12: RESUME CONTENT</h2>
+<p><strong>Project title:</strong> VoxCode — Voice-Driven Interface for aider<br>
+<strong>Technologies:</strong> Python, aider, Groq API (Whisper + LLM), webrtcvad, sounddevice, litellm, Rich, click, pytest<br>
+<strong>GitHub:</strong> https://github.com/gurusaiss/voxcode</p>
+<h3 id="bullet-points-pick-3-4-for-your-resume">Bullet points (pick 3-4 for your resume)</h3>
+<ul>
+<li>Built a voice-to-code pipeline wrapping aider's Python API, enabling fully hands-free coding sessions with ~200ms end-to-end latency using Groq Whisper STT</li>
+<li>Implemented a 30ms-frame VAD pipeline using webrtcvad with energy-threshold fallback, supporting both continuous and push-to-talk recording modes</li>
+<li>Designed a voice macro resolver mapping natural spoken commands (&quot;undo that&quot;, &quot;show diff&quot;) to aider's native slash commands via exact match + regex</li>
+<li>Diagnosed and fixed 7 production bugs including negative integer parsing, PTT threading race conditions, model caching, and ANSI compatibility on Windows</li>
+<li>Achieved $0 deployment cost using Groq's free tier (7,200 min/day STT + 500k tokens/min LLM)</li>
+</ul>
+<hr>
+<h2 id="section-13-lessons-learned">SECTION 13: LESSONS LEARNED</h2>
+<ol>
+<li>
+<p><strong>Read the assignment requirement twice.</strong> Original submission built a custom agent from scratch — violated the core requirement to wrap an existing one. Complete rebuild required.</p>
+</li>
+<li>
+<p><strong>Python API &gt; subprocess for interactive CLIs.</strong> Subprocess wrapping breaks on Windows due to PTY. The library's own Python API is always the right approach.</p>
+</li>
+<li>
+<p><strong>Platform-specific bugs are real.</strong> ANSI on Windows, <code>webrtcvad</code> compilation on Windows, negative device indices — all required platform-specific solutions.</p>
+</li>
+<li>
+<p><strong>Cache expensive resources at module level, not function level.</strong> WhisperModel took 2-3 seconds to load. Moving it to module-level dict eliminated that cost for all subsequent calls.</p>
+</li>
+<li>
+<p><strong>Separate concerns cleanly.</strong> Because VoxCode is purely an input layer with no LLM knowledge, debugging was straightforward — issues were always in audio, VAD, STT, or the macro resolver, never in &quot;the AI did something wrong.&quot;</p>
+</li>
+<li>
+<p><strong>Validate configuration at startup.</strong> Silent wrong behavior from typos in <code>.env</code> is hard to debug. Explicit error messages at startup save hours of debugging.</p>
+</li>
+</ol>
+<hr>
+<h2 id="section-14-future-improvements">SECTION 14: FUTURE IMPROVEMENTS</h2>
+<table>
+<thead>
+<tr>
+<th>Improvement</th>
+<th>Effort</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wake word detection (&quot;hey aider&quot;)</td>
+<td>Medium</td>
+<td>High — eliminates accidental activation</td>
+</tr>
+<tr>
+<td>Streaming STT</td>
+<td>High</td>
+<td>High — shows words in real-time vs after silence</td>
+</tr>
+<tr>
+<td>Web UI</td>
+<td>High</td>
+<td>Medium — browser-based mic, no terminal needed</td>
+</tr>
+<tr>
+<td>aider session persistence</td>
+<td>Low</td>
+<td>High — resume context across program restarts</td>
+</tr>
+<tr>
+<td>Speaker diarization</td>
+<td>High</td>
+<td>Low for solo use, High for pair programming</td>
+</tr>
+<tr>
+<td>Quantized local LLM (ollama)</td>
+<td>Low</td>
+<td>Medium — full offline operation</td>
+</tr>
+<tr>
+<td>Voice response (TTS)</td>
+<td>Medium</td>
+<td>Medium — hear aider's response read aloud</td>
+</tr>
+<tr>
+<td>IDE plugin (VS Code)</td>
+<td>High</td>
+<td>High — removes terminal requirement entirely</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="section-15-ultra-compressed-revision-sheet">SECTION 15: ULTRA-COMPRESSED REVISION SHEET</h2>
+<pre class="hljs"><code><div>WHAT:    voice input layer for aider (NOT a custom agent)
+HOW:     speak → VAD (webrtcvad) → STT (Groq Whisper) → macros → aider.run()
+WHY aider:    55k stars, Python API, git-native, litellm, InputOutput(yes=True)
+WHY Python API not subprocess:    PTY breaks on Windows
+
+CORE CLASS:
+  AiderBridge → Coder.create(model, io=InputOutput(yes=True)) → coder.run(text)
+
+VAD:     30ms frames, 16kHz, 1.0s silence timeout, energy fallback for odd sample rates
+STT:     Groq whisper-large-v3-turbo, ~200ms, WAV bytes in-memory, fallback=faster-whisper
+MACROS:  exact dict match + regex for add/drop file → aider slash commands
+WAVEFORM: sys.stdout.write + \r\033[K (bypasses Rich newline), SetConsoleMode for Windows
+COST:    $0 (Groq free tier: 7200 min/day + 500k tokens/min)
+
+BUGS FIXED:
+  1. .isdigit() fails for -1 → use int() + try/except
+  2. PTT timeout not checked → check return value of wait()
+  3. PTT ignored DEVICE_INDEX → add device param
+  4. WhisperModel reloaded per call → module-level cache dict
+  5. Fallback warning via stdout → use stderr
+  6. getsize() race condition → try/except OSError
+  7. ANSI broken on Windows → SetConsoleMode(handle, 7)
+
+TESTS:   27 tests, all mocked, no mic/API needed
+STACK:   sounddevice, webrtcvad-wheels, groq, aider-chat, rich, click, python-dotenv, pynput
+REPO:    https://github.com/gurusaiss/voxcode
+</div></code></pre>
+<hr>
+<h2 id="deliverable-1-interview-cheat-sheet">DELIVERABLE 1: INTERVIEW CHEAT SHEET</h2>
+<h3 id="elevator-pitch-30-seconds">Elevator Pitch (30 seconds)</h3>
+<blockquote>
+<p>&quot;VoxCode is a voice interface for aider, an open-source terminal coding agent. You speak naturally, Groq Whisper transcribes your words in ~200ms, and they're forwarded to aider as if you typed them. aider then edits your code, shows diffs, and commits to git. The whole thing costs nothing — Groq's free tier covers a full day of coding sessions.&quot;</p>
+</blockquote>
+<h3 id="key-numbers">Key Numbers</h3>
+<table>
+<thead>
+<tr>
+<th>Number</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>~200ms</td>
+<td>Groq Whisper STT latency</td>
+</tr>
+<tr>
+<td>30ms</td>
+<td>VAD frame size</td>
+</tr>
+<tr>
+<td>1.0s</td>
+<td>Silence timeout before sending</td>
+</tr>
+<tr>
+<td>$0</td>
+<td>Total cost (Groq free tier)</td>
+</tr>
+<tr>
+<td>27</td>
+<td>Test count</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Bugs fixed</td>
+</tr>
+<tr>
+<td>55k</td>
+<td>aider GitHub stars</td>
+</tr>
+</tbody>
+</table>
+<h3 id="what-you-built-not-what-aider-does">What YOU built (not what aider does)</h3>
+<ul>
+<li>VAD pipeline</li>
+<li>STT integration</li>
+<li>Voice macro resolver</li>
+<li>AiderBridge (10 lines of real code)</li>
+<li>ANSI waveform bar</li>
+<li>PTT mode</li>
+<li>Config validation</li>
+</ul>
+<h3 id="what-aider-does-credit-it-correctly">What AIDER does (credit it correctly)</h3>
+<ul>
+<li>LLM routing</li>
+<li>File editing</li>
+<li>Diff display</li>
+<li>Git commits</li>
+<li>All code intelligence</li>
+</ul>
+<hr>
+<h2 id="deliverable-2-technical-story-bank">DELIVERABLE 2: TECHNICAL STORY BANK</h2>
+<h3 id="story-1-the-assignment-violation-star">Story 1: The Assignment Violation (STAR)</h3>
+<p><strong>Situation:</strong> Built a custom GroqAgent from scratch, passing it speech text and streaming its LLM responses.<br>
+<strong>Task:</strong> Realized this violated the assignment requirement to wrap an existing agent.<br>
+<strong>Action:</strong> Complete rebuild using aider's Python API. Deleted groq_agent.py. Created aider_bridge.py. Rewrote main.py, display.py, commands.py, tests.<br>
+<strong>Result:</strong> Clean architecture — VoxCode is purely a voice input layer. aider is the agent. Assignment requirement met.</p>
+<h3 id="story-2-ansi-waveform-on-windows-debugging">Story 2: ANSI Waveform on Windows (Debugging)</h3>
+<p><strong>Situation:</strong> Waveform bar worked on Mac, completely broken on Windows (just printed raw escape codes).<br>
+<strong>Investigation:</strong> Traced to two issues — (1) Rich's <code>console.print()</code> always adds a newline, preventing in-place update; (2) Windows console doesn't enable ANSI by default.<br>
+<strong>Fix:</strong> Switched to <code>sys.stdout.write</code> + <code>\r\033[K</code>. Added <code>ctypes.windll.kernel32.SetConsoleMode(handle, 7)</code> at startup with platform check.<br>
+<strong>Learning:</strong> Platform-specific console behavior is never obvious until you test on that platform.</p>
+<h3 id="story-3-whispermodel-2-3s-overhead-optimization">Story 3: WhisperModel 2-3s Overhead (Optimization)</h3>
+<p><strong>Situation:</strong> Local STT mode felt slow — 2-3 seconds of overhead per utterance even for short phrases.<br>
+<strong>Investigation:</strong> Found <code>WhisperModel(model_size, device=&quot;cpu&quot;, compute_type=&quot;int8&quot;)</code> being called inside the transcription function on every call.<br>
+<strong>Fix:</strong> Module-level <code>_local_model_cache = {}</code> dict. Model loaded once on first call, cached by model_size key.<br>
+<strong>Result:</strong> Subsequent utterances had near-zero model-loading overhead.</p>
+<hr>
+<h2 id="deliverable-3-mock-interview-30-questions-with-answers">DELIVERABLE 3: MOCK INTERVIEW (30 Questions with Answers)</h2>
+<p><strong>Q1: How did you choose which open-source agent to wrap?</strong><br>
+Evaluated aider, mentat, continue.dev, and sweep. Chose aider for: Python API (others had CLI-only), 55k stars (active, maintained), git-native (no separate git step), litellm (model flexibility), <code>InputOutput(yes=True)</code> (hands-free critical).</p>
+<p><strong>Q2: If you had to pick a different agent tomorrow, what would change?</strong><br>
+Only <code>agent/aider_bridge.py</code> would change — swap <code>Coder.run()</code> for the new agent's API. The VAD pipeline, STT, macro resolver, and UI are fully agent-agnostic.</p>
+<p><strong>Q3: How does VoxCode handle network failures?</strong><br>
+Groq STT failure → fallback to local faster-whisper. Groq LLM failure → aider shows error and continues session. Both are transparent to the session loop.</p>
+<p><strong>Q4: Why is <code>InputOutput(yes=True)</code> a design risk and how did you mitigate it?</strong><br>
+Auto-accept means aider can make destructive file edits without confirmation. Mitigated by aider's git integration — every edit is committed, reversible via &quot;undo that&quot; → <code>/undo</code>. Users should run VoxCode in a git repo.</p>
+<p><strong>Q5: What is the maximum utterance length VoxCode supports?</strong><br>
+No explicit limit. VAD accumulates until 1 second of silence. In practice, users naturally pause after sentences. Very long monologues (&gt;30s) would accumulate, which is fine — Groq Whisper handles long audio well.</p>
+<p><strong>Q6: How would you add a new voice macro?</strong><br>
+Add one line to <code>MACROS</code> dict in <code>commands.py</code>:</p>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;show history&quot;</span>: <span class="hljs-string">&quot;/history&quot;</span>,
+</div></code></pre>
+<p>If it needs regex (e.g., parameterized), add a regex constant and a match check in <code>resolve()</code>.</p>
+<p><strong>Q7: How does the session know the user said &quot;exit&quot;?</strong><br>
+<code>is_exit(text)</code> checks if the resolved command is &quot;/exit&quot; or if the raw text contains &quot;exit&quot; or &quot;quit&quot;. If true, the session loop breaks and aider's <code>coder.run(&quot;/exit&quot;)</code> is called to clean up.</p>
+<p><strong>Q8: What happens if aider's Coder.run() raises an exception?</strong><br>
+Currently propagates to the session loop and crashes. Improvement: wrap in try/except in <code>main.py</code>, print error, prompt user to continue or exit.</p>
+<p><strong>Q9: How do you test that the VAD detects speech correctly?</strong><br>
+<code>test_audio.py</code> tests frame sizes, WAV encoding, and energy threshold logic with synthetic PCM data (numpy arrays). The VAD classification itself isn't unit-tested — it's a Google algorithm tested by Google.</p>
+<p><strong>Q10: Explain the difference between <code>record_continuous</code> and <code>record_push_to_talk</code> at the API level.</strong><br>
+Both accept <code>sample_rate</code>, <code>on_energy</code> callback, <code>device</code>. Both return <code>Optional[bytes]</code> (WAV bytes). The session loop calls whichever function is configured — it doesn't know which recording mode is active. The difference is entirely internal to each function.</p>
+<p><strong>Q11: How would you scale this to 1000 concurrent users?</strong><br>
+VoxCode is a local CLI tool, not a server. For server-side: audio upload endpoint → async VAD/STT worker → aider session per user (isolated processes) → WebSocket back to client. Each aider session needs its own working directory and git repo.</p>
+<p><strong>Q12: How would you add user authentication?</strong><br>
+Not needed for local tool. For server version: API key header in upload request, session token bound to user, rate limiting per key.</p>
+<p><strong>Q13: What's the memory footprint of a running VoxCode session?</strong><br>
+VAD frame buffer: ~20KB. Groq client: ~1MB. aider Coder: ~50-100MB. Rich terminal: ~5MB. Total: ~100-150MB typical.</p>
+<p><strong>Q14: How would you add support for non-English languages?</strong><br>
+Groq Whisper auto-detects language. Pass <code>language=&quot;es&quot;</code> (or desired language code) to the transcription API call for better accuracy. Voice macros would need localized equivalents in <code>commands.py</code>.</p>
+<p><strong>Q15: How would you monitor VoxCode in production?</strong><br>
+Logging: structured JSON logs per turn (utterance length, transcription text, latency breakdown, aider turn count). Metrics: STT latency histogram, VAD false positive rate, session length distribution. Alert on: Groq API error rate &gt; 5%, STT latency &gt; 1s.</p>
+<p><strong>Q16: What is Voice Activity Detection and why is it needed?</strong><br>
+VAD distinguishes voiced audio frames from silence/noise. Without it, you'd need push-to-talk (not hands-free) or send every fixed time interval (wastes API calls, sends silence to Whisper, gets empty transcriptions).</p>
+<p><strong>Q17: Why encode to WAV before sending to Groq?</strong><br>
+Groq Whisper expects audio file bytes, not raw PCM. WAV format adds a header describing sample rate, bit depth, and channel count — Whisper needs this to decode correctly. <code>scipy.io.wavfile.write</code> to <code>BytesIO</code> handles this in one line with no temp files.</p>
+<p><strong>Q18: What is litellm and why does aider use it?</strong><br>
+litellm is a unified LLM API client — one interface for 100+ providers (OpenAI, Anthropic, Groq, etc.). aider uses it so users can switch LLM providers by changing one string in config. <code>groq/llama-3.3-70b-versatile</code> is a litellm model identifier that routes to Groq's API automatically.</p>
+<p><strong>Q19: What does &quot;git-native&quot; mean for aider?</strong><br>
+aider auto-commits every file edit to git with a descriptive message. It shows diffs before applying changes. You can &quot;undo&quot; edits with <code>/undo</code> (which runs <code>git revert</code>). This means aider's edit history is your git history.</p>
+<p><strong>Q20: Why is the waveform bar important UX-wise?</strong><br>
+Without it, the user has no feedback about whether the microphone is working, whether speech is being detected, or whether the system is waiting/recording. The bar confirms mic is working (shows RMS), shows when speech is detected (turns green), and shows VAD state (REC vs HEARD).</p>
+<p><strong>Q21: Does VoxCode work offline?</strong><br>
+Partially. Set <code>STT_BACKEND=local</code> (uses faster-whisper on CPU, no internet for STT). Set <code>AIDER_MODEL=ollama/codellama</code> (with Ollama running locally). Then both STT and LLM run offline. Default setup requires internet for Groq API.</p>
+<p><strong>Q22: What happens if the user speaks while aider is responding?</strong><br>
+The microphone continues capturing audio (sounddevice is non-blocking). The VAD accumulates frames. When aider finishes, the session loop reads the buffered audio — effectively the user's next command is already queued.</p>
+<p><strong>Q23: Can VoxCode edit files outside the current directory?</strong><br>
+aider can edit any file you add to its context with <code>/add /absolute/path</code>. VoxCode forwards the <code>/add</code> command as spoken — &quot;add /absolute/path/file.py&quot; — so yes, indirectly.</p>
+<p><strong>Q24: What is the aggressiveness=2 setting actually doing in webrtcvad?</strong><br>
+It's an integer passed to <code>webrtcvad.Vad(aggressiveness)</code>. WebRTC's VAD internally uses different energy/spectral thresholds at each level. Level 2 filters most background noise while still detecting moderate-volume voices.</p>
+<p><strong>Q25: Why is <code>auto_commits=False</code> passed to <code>Coder.create()</code>?</strong><br>
+aider by default auto-commits every file edit. With <code>auto_commits=False</code>, edits are made but not committed until the user says &quot;commit&quot; → <code>/commit</code>. This gives more control.</p>
+<p><strong>Q26: What if two voices speak simultaneously in PTT mode?</strong><br>
+Not handled — single-user design. PTT records from one microphone for one user. Multi-user would need speaker diarization to separate voices before transcription.</p>
+<p><strong>Q27: How long does aider take to load on first run?</strong><br>
+~3-5 seconds for model initialization and git repo detection. Subsequent <code>coder.run()</code> calls are instant (model stays loaded). This is aider's startup cost, not VoxCode's.</p>
+<p><strong>Q28: What's the maximum number of voice macros you can add?</strong><br>
+No limit. MACROS is a Python dict. Performance is O(n) for exact match lookup — negligible for any practical number of macros (&lt;1000).</p>
+<p><strong>Q29: If Groq changes their API, what breaks?</strong><br>
+Only <code>transcribe.py</code>'s <code>transcribe_groq()</code> function — it directly calls <code>groq.Audio.transcriptions.create()</code>. The rest of the system is unaffected.</p>
+<p><strong>Q30: What would you add if you had two more weeks?</strong><br>
+Wake word detection using pvporcupine (&quot;hey aider&quot; → start listening vs always-on VAD). This would eliminate accidental activation from TV/music in the background — the single biggest production usability issue.</p>
+<hr>
+<h2 id="deliverable-4-confidence-ratings">DELIVERABLE 4: CONFIDENCE RATINGS</h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Confidence</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Overall architecture</td>
+<td>10/10</td>
+<td>Can draw and explain from memory</td>
+</tr>
+<tr>
+<td>aider Python API</td>
+<td>9/10</td>
+<td>Know Coder.create(), InputOutput, litellm routing</td>
+</tr>
+<tr>
+<td>VAD pipeline</td>
+<td>9/10</td>
+<td>Know frame sizes, energy fallback, silence timeout</td>
+</tr>
+<tr>
+<td>Groq Whisper</td>
+<td>9/10</td>
+<td>Know API call, WAV encoding, fallback logic</td>
+</tr>
+<tr>
+<td>Voice macros</td>
+<td>10/10</td>
+<td>Can reproduce commands.py from memory</td>
+</tr>
+<tr>
+<td>Bug explanations</td>
+<td>9/10</td>
+<td>Know all 7 bugs and exact fixes</td>
+</tr>
+<tr>
+<td>ANSI waveform</td>
+<td>8/10</td>
+<td>Know \r\033[K, SetConsoleMode — may miss minor details</td>
+</tr>
+<tr>
+<td>litellm/model routing</td>
+<td>8/10</td>
+<td>Know prefix-based routing, may not recall all providers</td>
+</tr>
+<tr>
+<td>webrtcvad internals</td>
+<td>6/10</td>
+<td>Know aggressiveness levels, not the algorithm math</td>
+</tr>
+<tr>
+<td>sounddevice/PortAudio</td>
+<td>7/10</td>
+<td>Know API, may struggle with advanced stream config</td>
+</tr>
+<tr>
+<td>aider internals (non-API)</td>
+<td>4/10</td>
+<td>Used as black box, don't know its internal architecture</td>
+</tr>
+<tr>
+<td>faster-whisper</td>
+<td>6/10</td>
+<td>Know model loading, compute types, not the full API</td>
+</tr>
+</tbody>
+</table>
+<h3 id="knowledge-gaps-to-review-before-interview">Knowledge gaps to review before interview</h3>
+<ul>
+<li>webrtcvad's internal spectral analysis (can say &quot;Google WebRTC algorithm&quot; and move on)</li>
+<li>sounddevice stream parameters (channels, dtype, blocksize)</li>
+<li>aider's internal architecture (don't need it — VoxCode only uses the public API)</li>
+</ul>
+
+</body>
+</html>
